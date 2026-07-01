@@ -29,26 +29,26 @@ def check_tools():
 check_tools()
 
 # ── Embed URL builders ────────────────────────────────────────────────────────
+# ── Embed URL builders (Prioritizing vidlink.pro) ─────────────────────────────
 def build_embed_urls(tmdb_id, ctype, season=1, episode=1):
     s, e = season, episode
     if ctype == "movie":
         return [
-            f"https://vidsrc.cc/v2/embed/movie/{tmdb_id}",
-            f"https://vidlink.pro/movie/{tmdb_id}",
+            f"https://vidlink.pro/movie/{tmdb_id}",             # vidlink কে সবার উপরে ১ নম্বরে দেওয়া হলো
             f"https://vidsrc.to/embed/movie/{tmdb_id}",
             f"https://embed.su/embed/movie/{tmdb_id}",
+            f"https://vidsrc.cc/v2/embed/movie/{tmdb_id}",       # সমস্যাযুক্ত সোর্স নিচে নামানো হলো
             f"https://autoembed.cc/movie/tmdb/{tmdb_id}",
             f"https://www.2embed.cc/embed/{tmdb_id}",
         ]
     else:
         return [
-            f"https://vidsrc.cc/v2/embed/tv/{tmdb_id}/{s}/{e}",
-            f"https://vidlink.pro/tv/{tmdb_id}/{s}/{e}",
+            f"https://vidlink.pro/tv/{tmdb_id}/{s}/{e}",          # tv show এর জন্যও vidlink ১ নম্বরে
             f"https://vidsrc.to/embed/tv/{tmdb_id}/{s}/{e}",
             f"https://embed.su/embed/tv/{tmdb_id}/{s}/{e}",
+            f"https://vidsrc.cc/v2/embed/tv/{tmdb_id}/{s}/{e}",   # সমস্যাযুক্ত সোর্স নিচে নামানো হলো
             f"https://autoembed.cc/tv/tmdb/{tmdb_id}-{s}-{e}",
         ]
-
 # ── yt-dlp extraction ─────────────────────────────────────────────────────────
 # ── yt-dlp extraction (Optimized with Retry and Timeout) ───────────────────────
 def ytdlp_extract(page_url, quality="1080"):
