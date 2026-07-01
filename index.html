@@ -41,6 +41,31 @@ html, body { background: #000; font-family: 'Inter', sans-serif; }
 @keyframes tgIn{to{opacity:1}}
 #intro.fade-out{transition:opacity 0.6s ease;opacity:0;pointer-events:none;}
 
+/* Pause all intro animations until the user taps to enter */
+body.pre-tap #intro .grain,
+body.pre-tap #intro .curtain,
+body.pre-tap #intro .scene,
+body.pre-tap #intro .halo,
+body.pre-tap #intro .shock,
+body.pre-tap #intro .big-c,
+body.pre-tap #intro .full-text,
+body.pre-tap #intro .ch-c,
+body.pre-tap #intro .ch,
+body.pre-tap #intro .underline,
+body.pre-tap #intro .tagline{
+  animation-play-state:paused !important;
+}
+
+/* TAP TO ENTER overlay */
+#tapEnter{position:absolute;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:#000;cursor:pointer;transition:opacity 0.5s ease;}
+#tapEnter.hide{opacity:0;pointer-events:none;}
+#tapEnterInner{display:flex;flex-direction:column;align-items:center;gap:22px;}
+#tapEnterLogo{font-family:'Bebas Neue',cursive;font-size:15vw;letter-spacing:2px;color:#fff;max-width:90vw;text-align:center;line-height:1;}
+#tapEnterLogo span{color:#e50914;}
+#tapEnterPrompt{font-size:12px;letter-spacing:6px;color:rgba(255,255,255,0.55);border:1px solid rgba(255,255,255,0.25);padding:12px 26px;border-radius:2px;animation:tapPulse 1.6s ease-in-out infinite;}
+@keyframes tapPulse{0%,100%{opacity:0.55;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+@media (min-width:700px){#tapEnterLogo{font-size:64px;}}
+
 /* HOME */
 #home{display:none;opacity:0;transition:opacity 0.7s ease;}
 #home.visible{display:block;opacity:1;}
@@ -48,28 +73,74 @@ html, body { background: #000; font-family: 'Inter', sans-serif; }
 #home{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;}
 
 /* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;background:linear-gradient(to bottom,rgba(0,0,0,0.95) 0%,transparent 100%);transition:background 0.3s;}
+/* NOTICE BAR — live library stats ticker */
+:root{--notice-h:30px;}
+#noticeBar{position:fixed;top:0;left:0;right:0;z-index:110;height:var(--notice-h);display:flex;align-items:center;background:linear-gradient(90deg,#0a0a0a 0%,#150404 50%,#0a0a0a 100%);border-bottom:0.5px solid rgba(229,9,20,0.25);overflow:hidden;}
+.notice-live{display:flex;align-items:center;gap:6px;flex-shrink:0;background:var(--red);color:#fff;font-size:10px;font-weight:600;letter-spacing:2px;padding:0 12px;height:100%;}
+.notice-live-dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:blink 1.4s ease-in-out infinite;}
+.notice-track{display:flex;flex-wrap:nowrap;white-space:nowrap;will-change:transform;animation:noticeScroll 26s linear infinite;}
+.notice-set{display:flex;align-items:center;flex-shrink:0;padding-left:32px;}
+.notice-item{font-size:11.5px;letter-spacing:1.2px;color:rgba(255,255,255,0.85);margin-right:32px;display:inline-flex;align-items:center;gap:6px;}
+.notice-item b{color:var(--gold);font-weight:600;}
+.notice-dot{color:rgba(255,255,255,0.25);margin-right:32px;}
+@keyframes noticeScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+nav{position:fixed;top:var(--notice-h);left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;background:linear-gradient(to bottom,rgba(0,0,0,0.95) 0%,transparent 100%);transition:background 0.3s;}
 nav.scrolled{background:rgba(10,10,10,0.97);backdrop-filter:blur(12px);border-bottom:0.5px solid rgba(255,255,255,0.06);}
 .nav-logo{font-family:'Bebas Neue',cursive;font-size:28px;letter-spacing:3px;color:#fff;cursor:pointer;}
 .nav-logo span{color:var(--red);}
 .nav-right{display:flex;align-items:center;gap:20px;}
 
-/* Search */
-.nav-search-wrap{position:relative;display:flex;align-items:center;}
+/* Search — YouTube-style: clicking the icon turns the WHOLE nav into a full-width bar */
+.nav-search-wrap{position:relative;display:flex;align-items:center;flex-shrink:0;}
 .nav-search-btn{width:18px;height:18px;cursor:pointer;opacity:0.6;transition:opacity 0.2s;background:none;border:none;padding:0;display:flex;align-items:center;justify-content:center;}
 .nav-search-btn:hover{opacity:1;}
 .nav-search-btn svg{width:18px;height:18px;}
-.search-bar{position:absolute;right:28px;top:50%;transform:translateY(-50%);background:rgba(20,20,20,0.97);border:1px solid rgba(255,255,255,0.15);border-radius:4px;display:flex;align-items:center;gap:8px;padding:0 12px;width:0;overflow:hidden;opacity:0;transition:width 0.35s cubic-bezier(0.16,1,0.3,1),opacity 0.25s;white-space:nowrap;}
-.search-bar.open{width:280px;opacity:1;}
-.search-bar input{background:none;border:none;outline:none;color:#fff;font-size:13px;font-family:'Inter',sans-serif;width:100%;padding:8px 0;}
+
+/* full-bar layer, hidden by default, sits above the whole nav row */
+.search-bar{position:fixed;top:0;left:0;right:0;height:64px;z-index:110;display:flex;align-items:center;gap:12px;padding:0 48px;background:rgba(10,10,10,0.98);backdrop-filter:blur(12px);border-bottom:0.5px solid rgba(255,255,255,0.08);opacity:0;pointer-events:none;transform:translateY(-100%);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1),opacity 0.25s;}
+.search-bar.open{opacity:1;pointer-events:auto;transform:translateY(0);}
+.search-bar-back{flex-shrink:0;width:20px;height:20px;cursor:pointer;background:none;border:none;color:#fff;opacity:0.7;display:flex;align-items:center;justify-content:center;padding:0;}
+.search-bar-back:hover{opacity:1;}
+.search-bar-back svg{width:20px;height:20px;}
+.search-bar input{flex:1;min-width:0;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;outline:none;color:#fff;font-size:14px;font-family:'Inter',sans-serif;padding:10px 14px;}
 .search-bar input::placeholder{color:var(--muted);}
-.search-bar-clear{cursor:pointer;opacity:0.5;flex-shrink:0;background:none;border:none;color:#fff;font-size:16px;padding:0;line-height:1;}
+.search-bar-clear{cursor:pointer;opacity:0.6;flex-shrink:0;background:none;border:none;color:#fff;font-size:20px;padding:0;line-height:1;}
 .search-bar-clear:hover{opacity:1;}
+
+/* Suggestion dropdown — YouTube style: history icon + text + thumbnail */
+.search-suggest-dropdown{background:#181818;border:1px solid rgba(255,255,255,0.1);border-radius:10px;box-shadow:0 16px 40px rgba(0,0,0,0.55);overflow:hidden;z-index:120;display:none;max-height:70vh;overflow-y:auto;}
+.search-suggest-dropdown.open{display:block;}
+#nav-suggest-dropdown{position:fixed;top:74px;left:50%;transform:translateX(-50%);width:min(640px,90vw);}
+.hero-suggest-anchor{position:relative;max-width:680px;margin:0 auto;}
+#hero-suggest-dropdown{position:absolute;left:0;right:0;top:calc(100% + 8px);width:auto;}
+.suggest-section-label{font-size:11px;letter-spacing:1.5px;color:var(--muted);padding:12px 16px 6px;text-transform:uppercase;}
+.suggest-row{display:flex;align-items:center;gap:14px;padding:10px 16px;cursor:pointer;transition:background 0.15s;}
+.suggest-row:hover{background:rgba(255,255,255,0.06);}
+.suggest-row .suggest-icon{width:18px;height:18px;flex-shrink:0;opacity:0.55;stroke:#fff;}
+.suggest-row .suggest-icon.trending-icon{opacity:0.9;}
+.suggest-row .suggest-text{flex:1;min-width:0;font-size:14px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.suggest-row .suggest-text mark{background:none;color:var(--red);font-weight:600;}
+.suggest-row .suggest-thumb{width:56px;height:34px;border-radius:4px;object-fit:cover;flex-shrink:0;background:#2a2a2a;}
+.suggest-row .suggest-remove{flex-shrink:0;opacity:0;transition:opacity 0.15s;background:none;border:none;color:#999;font-size:15px;cursor:pointer;padding:4px;line-height:1;}
+.suggest-row:hover .suggest-remove{opacity:1;}
+.suggest-row .suggest-remove:hover{color:#fff;}
+.suggest-empty{padding:20px 16px;color:var(--muted);font-size:13px;}
 .search-results-overlay{position:fixed;top:64px;left:0;right:0;bottom:0;z-index:99;background:rgba(0,0,0,0.92);display:none;overflow-y:auto;padding:32px 48px;}
 .search-results-overlay.open{display:block;}
 .search-results-title{font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:2px;color:var(--muted);margin-bottom:24px;}
 .search-results-title span{color:#fff;}
 .search-results-grid{display:flex;flex-wrap:wrap;gap:14px;}
+.search-chips-section{margin-bottom:28px;}
+.search-chips-label{font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;}
+.search-chips-row{display:flex;flex-wrap:wrap;gap:8px;}
+.search-chip{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#fff;font-size:12px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:background 0.2s,border-color 0.2s;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;}
+.search-chip:hover{background:rgba(229,9,20,0.18);border-color:rgba(229,9,20,0.4);}
+.search-chip.trending{border-color:rgba(232,180,0,0.3);}
+.search-chip-x{opacity:0.5;font-size:13px;}
+.search-chip-x:hover{opacity:1;}
+.card-name mark, .search-results-title mark{background:none;color:var(--red);font-weight:600;}
+.search-no-results{color:var(--muted);font-size:13px;padding:20px 0;line-height:1.8;}
+.search-no-results .search-chips-row{margin-top:10px;}
 .nav-avatar{width:32px;height:32px;border-radius:4px;background:var(--red);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',cursive;font-size:16px;cursor:pointer;}
 
 /* HERO */
@@ -86,6 +157,7 @@ nav.scrolled{background:rgba(10,10,10,0.97);backdrop-filter:blur(12px);border-bo
 .hero-poster-lines{position:absolute;bottom:0;left:0;right:0;height:180px;background:linear-gradient(to top,rgba(229,9,20,0.2),transparent);z-index:0;}
 .hero-content{position:relative;z-index:2;max-width:520px;}
 .hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gold-dim);border:0.5px solid rgba(232,180,0,0.3);border-radius:3px;padding:4px 10px;font-size:11px;letter-spacing:3px;color:var(--gold);margin-bottom:16px;white-space:nowrap;}
+.hero-countdown{font-size:13px;letter-spacing:1.5px;color:#fff;font-weight:600;font-variant-numeric:tabular-nums;margin:-6px 0 16px;text-shadow:0 0 20px rgba(229,9,20,0.5);}
 .hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:blink 1.5s ease-in-out infinite;flex-shrink:0;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
 .hero-title{font-family:'Bebas Neue',cursive;font-size:clamp(52px,7vw,96px);line-height:0.95;letter-spacing:2px;margin-bottom:16px;}
@@ -303,8 +375,13 @@ footer{border-top:0.5px solid rgba(255,255,255,0.06);padding:32px 48px;display:f
 /* MOBILE */
 @media(max-width:768px){
   .big-c{font-size:55vw}.full-text .word{font-size:clamp(48px,16vw,90px)}.tagline{font-size:10px;letter-spacing:5px;bottom:-30px}
+  :root{--notice-h:26px;}
+  .notice-live{font-size:9px;letter-spacing:1.5px;padding:0 8px;gap:4px;}
+  .notice-item{font-size:10.5px;letter-spacing:0.8px;margin-right:22px;}
+  .notice-set{padding-left:22px;}
   nav{padding:0 16px;height:56px;justify-content:center}.nav-logo{font-size:22px;letter-spacing:2px}.nav-right{position:absolute;right:16px;gap:12px}
-  .search-bar.open{width:200px}.search-bar{right:24px}
+  .search-bar{height:56px;padding:0 16px;gap:8px}
+  #nav-suggest-dropdown{top:64px;width:92vw}
   .search-results-overlay{padding:24px 16px}
 
   /* ── HERO — full-screen poster with content overlay ── */
@@ -413,9 +490,176 @@ footer{border-top:0.5px solid rgba(255,255,255,0.06);padding:32px 48px;display:f
   .cat-grid{grid-template-columns:repeat(2,1fr)}
   .hero-title{font-size:clamp(28px,9vw,44px) !important;}
 }
+
+/* ============================================================
+   FEATURE CSS — Request, Reviews, Trending, Collections, Profiles
+   ============================================================ */
+
+/* ── FLOATING ACTION BUTTON (Request) ── */
+.fab-request{position:fixed;bottom:28px;right:24px;z-index:200;width:56px;height:56px;border-radius:50%;background:var(--red);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(229,9,20,0.5);transition:transform 0.2s,box-shadow 0.2s;font-size:22px;}
+.fab-request:hover{transform:scale(1.1);box-shadow:0 8px 32px rgba(229,9,20,0.7);}
+.fab-tooltip{position:absolute;right:64px;background:rgba(20,20,20,0.95);color:#fff;font-size:12px;font-family:'Inter',sans-serif;padding:6px 12px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.2s;border:1px solid rgba(255,255,255,0.1);}
+.fab-request:hover .fab-tooltip{opacity:1;}
+
+/* ── MODAL BASE ── */
+.cm-modal-bg{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;}
+@media(min-width:640px){.cm-modal-bg{align-items:center;}}
+.cm-modal{background:#111;border-radius:20px 20px 0 0;width:100%;max-width:540px;padding:24px 20px 40px;font-family:'Inter',sans-serif;color:#fff;max-height:90vh;overflow-y:auto;animation:cmSlideUp .28s cubic-bezier(.16,1,.3,1);}
+@media(min-width:640px){.cm-modal{border-radius:16px;padding:28px 28px 36px;animation:cmFadeIn .22s ease;}}
+@keyframes cmSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes cmFadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.cm-modal-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.2);margin:0 auto 20px;}
+.cm-modal-title{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;margin-bottom:4px;}
+.cm-modal-sub{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.cm-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:12px 14px;color:#fff;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s;}
+.cm-input:focus{border-color:var(--red);}
+.cm-textarea{resize:vertical;min-height:80px;}
+.cm-label{font-size:11px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;display:block;}
+.cm-field{margin-bottom:16px;}
+.cm-btn-row{display:flex;gap:10px;margin-top:20px;}
+.cm-btn{flex:1;padding:13px;border-radius:8px;border:none;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity 0.2s;}
+.cm-btn-primary{background:var(--red);color:#fff;}
+.cm-btn-primary:hover{opacity:0.88;}
+.cm-btn-secondary{background:rgba(255,255,255,0.08);color:#fff;}
+.cm-btn-secondary:hover{background:rgba(255,255,255,0.14);}
+.cm-success{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 0;text-align:center;}
+.cm-success-icon{width:56px;height:56px;border-radius:50%;background:rgba(46,204,113,0.15);border:2px solid rgba(46,204,113,0.4);display:flex;align-items:center;justify-content:center;font-size:24px;}
+.cm-success-title{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;}
+.cm-success-sub{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* ── SETTINGS ── */
+.cm-setting-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.07);}
+.cm-setting-row:last-of-type{border-bottom:none;}
+.cm-setting-label{font-size:14px;color:#fff;margin-bottom:3px;}
+.cm-setting-desc{font-size:11.5px;color:var(--muted);line-height:1.5;max-width:340px;}
+.cm-switch{position:relative;width:44px;height:26px;flex-shrink:0;cursor:pointer;}
+.cm-switch input{opacity:0;width:0;height:0;position:absolute;}
+.cm-switch-track{position:absolute;inset:0;background:rgba(255,255,255,0.18);border-radius:14px;transition:background 0.2s;}
+.cm-switch-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.4);}
+.cm-switch input:checked ~ .cm-switch-track{background:var(--red);}
+.cm-switch input:checked ~ .cm-switch-thumb{transform:translateX(18px);}
+
+/* ── LIKE / DISLIKE ── */
+.like-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.like-btn{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#fff;border-radius:20px;padding:7px 14px;font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;transition:all 0.2s;}
+.like-btn:hover{background:rgba(255,255,255,0.13);}
+.like-btn.liked{background:rgba(46,204,113,0.15);border-color:rgba(46,204,113,0.4);color:#2ecc71;}
+.like-btn.disliked{background:rgba(229,9,20,0.15);border-color:rgba(229,9,20,0.4);color:var(--red);}
+.like-btn svg{width:16px;height:16px;}
+.like-ratio-wrap{flex:1;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
+.like-ratio-fill{height:100%;background:linear-gradient(to right,#2ecc71,#27ae60);border-radius:2px;transition:width 0.5s ease;}
+
+/* ── REVIEWS ── */
+.review-section{padding:16px 16px 8px;}
+.review-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.review-title{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;display:flex;align-items:center;gap:8px;}
+.review-title::before{content:'';display:block;width:3px;height:16px;background:var(--gold);border-radius:2px;}
+.write-review-btn{background:none;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Inter',sans-serif;font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all 0.2s;}
+.write-review-btn:hover{border-color:var(--gold);color:var(--gold);}
+.review-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:14px;margin-bottom:10px;}
+.review-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.review-avatar{width:34px;height:34px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',cursive;font-size:16px;flex-shrink:0;}
+.review-user{font-size:13px;font-weight:600;}
+.review-date{font-size:11px;color:var(--muted);margin-top:1px;}
+.review-stars{display:flex;gap:2px;margin-left:auto;}
+.review-star{color:var(--gold);font-size:13px;}
+.review-star.dim{color:rgba(255,255,255,0.15);}
+.review-body{font-size:13px;line-height:1.65;color:rgba(255,255,255,0.75);}
+.review-likes{display:flex;align-items:center;gap:6px;margin-top:10px;}
+.review-like-btn{display:flex;align-items:center;gap:4px;background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:4px 8px;border-radius:4px;transition:color 0.2s;}
+.review-like-btn:hover{color:#2ecc71;}
+.review-like-btn svg{width:13px;height:13px;}
+.review-star-select{display:flex;gap:6px;margin-bottom:14px;}
+.review-star-opt{font-size:24px;cursor:pointer;opacity:0.3;transition:opacity 0.15s,transform 0.15s;}
+.review-star-opt.on{opacity:1;transform:scale(1.15);}
+.review-show-more{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-family:'Inter',sans-serif;font-size:12px;padding:10px;border-radius:8px;cursor:pointer;margin-top:6px;transition:all 0.2s;}
+.review-show-more:hover{background:rgba(255,255,255,0.1);color:#fff;}
+
+/* ── TRENDING TABS ── */
+.trending-tabs-wrap{padding:0 16px;margin-bottom:16px;}
+.trending-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.trending-tabs::-webkit-scrollbar{display:none;}
+.trending-tab{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:1.5px;padding:6px 16px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
+.trending-tab:hover{color:#fff;border-color:rgba(255,255,255,0.3);}
+.trending-tab.active{background:var(--red);border-color:var(--red);color:#fff;}
+
+/* ── TOP 10 BADGE ── */
+.top10-badge{position:absolute;top:8px;left:8px;background:linear-gradient(135deg,#e8b400,#c49300);color:#000;font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:1px;padding:3px 8px;border-radius:3px;z-index:2;}
+
+/* ── COUNTRY FILTER ── */
+.country-filter-wrap{display:flex;align-items:center;gap:8px;padding:0 48px 20px;flex-wrap:wrap;}
+.country-filter-label{font-size:11px;letter-spacing:2px;color:var(--muted);white-space:nowrap;}
+.country-chip{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-family:'Inter',sans-serif;font-size:12px;padding:5px 12px;border-radius:16px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.country-chip:hover{background:rgba(255,255,255,0.12);color:#fff;}
+.country-chip.active{background:rgba(229,9,20,0.2);border-color:rgba(229,9,20,0.5);color:#fff;}
+@media(max-width:768px){.country-filter-wrap{padding:0 16px 16px;}}
+
+/* ── STREAMING BADGES ── */
+.stream-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.stream-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:0.5px;}
+.stream-badge-netflix{background:#e50914;color:#fff;}
+.stream-badge-prime{background:#00a8e0;color:#fff;}
+.stream-badge-disney{background:#113ccf;color:#fff;}
+.stream-badge-hbo{background:#6b2d8b;color:#fff;}
+.stream-badge-apple{background:#333;color:#fff;}
+.stream-badge-hulu{background:#1ce783;color:#000;}
+.stream-badge-default{background:rgba(255,255,255,0.12);color:#fff;}
+
+/* ── UPCOMING COUNTDOWN ── */
+.upcoming-card{flex:0 0 200px;border-radius:8px;overflow:hidden;background:var(--bg3);border:1px solid rgba(255,255,255,0.07);position:relative;}
+.upcoming-poster{width:200px;height:280px;object-fit:cover;display:block;background:#1a1a1a;}
+.upcoming-poster-ph{width:200px;height:280px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a0a14,#2d1a3d);font-family:'Bebas Neue',cursive;font-size:20px;color:rgba(255,255,255,0.4);}
+.upcoming-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.92) 0%,rgba(0,0,0,0.3) 50%,transparent 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:12px;}
+.upcoming-title{font-family:'Bebas Neue',cursive;font-size:16px;letter-spacing:1px;margin-bottom:4px;}
+.upcoming-date{font-size:11px;color:var(--gold);letter-spacing:1px;margin-bottom:8px;}
+.upcoming-countdown{display:flex;gap:6px;}
+.countdown-unit{display:flex;flex-direction:column;align-items:center;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:4px 7px;min-width:34px;}
+.countdown-num{font-family:'Bebas Neue',cursive;font-size:18px;line-height:1;color:#fff;}
+.countdown-lbl{font-size:7px;letter-spacing:1.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;}
+
+/* ── COLLECTIONS ── */
+.collection-card{flex:0 0 280px;border-radius:10px;overflow:hidden;cursor:pointer;position:relative;transition:transform 0.3s,box-shadow 0.3s;}
+.collection-card:hover{transform:scale(1.04);box-shadow:0 16px 48px rgba(0,0,0,0.7);}
+.collection-bg{width:280px;height:160px;object-fit:cover;display:block;background:#1a1a1a;}
+.collection-bg-ph{width:280px;height:160px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a0a0a,#3d1a1a);}
+.collection-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88),rgba(0,0,0,0.2));display:flex;flex-direction:column;justify-content:flex-end;padding:14px;}
+.collection-name{font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:2px;}
+.collection-count{font-size:11px;color:var(--muted);margin-top:2px;}
+.collection-logo{width:80px;height:32px;object-fit:contain;margin-bottom:8px;}
+.collections-row{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;}
+.collections-row::-webkit-scrollbar{display:none;}
+
+/* ── ACTOR / DIRECTOR PROFILE PAGE ── */
+#profile-page{display:none;background:var(--bg);min-height:100vh;color:var(--text);}
+#profile-page.open{display:block;}
+.profile-hero{position:relative;height:260px;background:linear-gradient(135deg,#1a0a0a,#0d0d1a);overflow:hidden;display:flex;align-items:flex-end;padding:24px 48px;}
+.profile-backdrop{position:absolute;inset:0;background-size:cover;background-position:center top;opacity:0.25;}
+.profile-backdrop-fade{position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 0%,transparent 70%);}
+.profile-photo-wrap{position:relative;z-index:1;display:flex;align-items:flex-end;gap:20px;}
+.profile-photo{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.15);background:#1a1a1a;flex-shrink:0;}
+.profile-photo-ph{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#3d0d20,#1a0508);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',cursive;font-size:36px;color:var(--red);border:3px solid rgba(229,9,20,0.3);flex-shrink:0;}
+.profile-info-hero h1{font-family:'Bebas Neue',cursive;font-size:clamp(24px,5vw,44px);letter-spacing:2px;margin-bottom:4px;}
+.profile-role-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(229,9,20,0.15);border:0.5px solid rgba(229,9,20,0.4);border-radius:3px;padding:3px 10px;font-size:10px;letter-spacing:2.5px;color:var(--red);margin-bottom:8px;}
+.profile-meta-row{display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap;}
+.profile-meta-item{display:flex;align-items:center;gap:5px;}
+.profile-body{padding:24px 48px 80px;}
+.profile-bio{font-size:14px;line-height:1.75;color:rgba(255,255,255,0.65);max-width:680px;margin-bottom:28px;}
+.profile-section-title{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.profile-section-title::before{content:'';display:block;width:3px;height:16px;background:var(--red);border-radius:2px;}
+.profile-stats{display:flex;gap:20px;margin-bottom:24px;flex-wrap:wrap;}
+.profile-stat{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px 16px;text-align:center;min-width:80px;}
+.profile-stat-num{font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:1px;color:#fff;}
+.profile-stat-lbl{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:0.5px;}
+@media(max-width:768px){
+  .profile-hero{height:220px;padding:16px;}
+  .profile-photo{width:76px;height:76px;} .profile-photo-ph{width:76px;height:76px;font-size:28px;}
+  .profile-body{padding:16px 16px 60px;}
+  .profile-bio{font-size:13px;}
+}
+
 </style>
 </head>
-<body>
+<body class="pre-tap">
 
 <!-- INTRO -->
 <div id="intro">
@@ -433,32 +677,51 @@ footer{border-top:0.5px solid rgba(255,255,255,0.06);padding:32px 48px;display:f
       </div>
     </div>
   </div>
+  <div id="tapEnter" onclick="enterCinemon()">
+    <div id="tapEnterInner">
+      <div id="tapEnterLogo">CINE<span>MON</span></div>
+      <div id="tapEnterPrompt">TAP TO ENTER</div>
+    </div>
+  </div>
 </div>
 
 <!-- HOME PAGE -->
 <div id="home">
 
+  <!-- NOTICE BAR — live library stats ticker -->
+  <div id="noticeBar">
+    <div class="notice-live"><span class="notice-live-dot"></span>LIVE</div>
+    <div id="noticeTrack" class="notice-track">
+      <div class="notice-set" id="notice-set-a"><span class="notice-item">Loading library stats…</span></div>
+      <div class="notice-set" id="notice-set-b" aria-hidden="true"><span class="notice-item">Loading library stats…</span></div>
+    </div>
+  </div>
+
   <!-- NAV — শুধু Logo + Search + Avatar (Movies/Series/My List বাদ) -->
   <nav id="nav">
-    <div class="nav-logo" onclick="showHome()"><span>C</span>INEMON</div>
+    <div class="nav-logo" onclick="goHome()"><span>C</span>INEMON</div>
     <div class="nav-right">
       <div class="nav-search-wrap">
         <button class="nav-search-btn" onclick="toggleSearch()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         </button>
         <div class="search-bar" id="search-bar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;opacity:0.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="search-input" placeholder="Movies, genres, titles…" oninput="handleSearch(this.value)">
+          <button class="search-bar-back" onclick="closeSearch()" aria-label="Close search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          <input type="text" id="search-input" placeholder="Movies, genres, titles…" oninput="handleSearch(this.value)" onfocus="if(!this.value.trim())showSearchSuggestions();" autocomplete="off">
           <button class="search-bar-clear" onclick="closeSearch()">&#x2715;</button>
         </div>
+        <div class="search-suggest-dropdown" id="nav-suggest-dropdown"></div>
       </div>
-      <div class="nav-avatar">C</div>
+      <div class="nav-avatar" onclick="openSettingsModal()">C</div>
     </div>
   </nav>
 
   <!-- Search Results Overlay -->
   <div class="search-results-overlay" id="search-results-overlay">
-    <div class="search-results-title">Results for &ldquo;<span id="search-query-label"></span>&rdquo;</div>
+    <div class="search-results-title" id="search-results-title-wrap" style="display:none;">Results for &ldquo;<span id="search-query-label"></span>&rdquo;</div>
+    <div id="search-suggestions-zone"></div>
     <div class="search-results-grid" id="search-results-grid"></div>
   </div>
 
@@ -479,11 +742,12 @@ footer{border-top:0.5px solid rgba(255,255,255,0.06);padding:32px 48px;display:f
         </svg>
       </div>
       <div class="hero-poster-title" id="hero-poster-title">—</div>
-      <div class="hero-poster-tag">NOW PLAYING</div>
+      <div class="hero-poster-tag" id="hero-poster-tag">NOW PLAYING</div>
       <div class="hero-poster-lines"></div>
     </div>
     <div class="hero-content">
       <div class="hero-badge"><div class="hero-badge-dot"></div><span id="hero-badge-label">NEW RELEASE</span></div>
+      <div class="hero-countdown" id="hero-countdown"></div>
       <h1 class="hero-title" id="hero-title" style="font-size:clamp(38px,6vw,86px)">—</h1>
       <div class="hero-meta">
         <span class="hero-meta-score" id="hero-score">—</span>
@@ -501,12 +765,15 @@ footer{border-top:0.5px solid rgba(255,255,255,0.06);padding:32px 48px;display:f
 
   <!-- SEARCH BAR (Hero এর নিচে) -->
   <div class="search-hero-wrap">
-    <div class="search-hero-inner">
-      <div class="search-hero-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <div class="hero-suggest-anchor">
+      <div class="search-hero-inner">
+        <div class="search-hero-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <input class="search-hero-input" id="search-hero-input" type="text" placeholder="Search movies, series, anime…" oninput="handleSearch(this.value)" onkeydown="if(event.key==='Enter')handleSearch(this.value)" onfocus="if(!this.value.trim())showSearchSuggestions();" autocomplete="off">
+        <button class="search-hero-btn" onclick="handleSearch(document.getElementById('search-hero-input').value)">SEARCH</button>
       </div>
-      <input class="search-hero-input" id="search-hero-input" type="text" placeholder="Search movies, series, anime…" oninput="handleSearch(this.value)" onkeydown="if(event.key==='Enter')handleSearch(this.value)">
-      <button class="search-hero-btn" onclick="handleSearch(document.getElementById('search-hero-input').value)">SEARCH</button>
+      <div class="search-suggest-dropdown" id="hero-suggest-dropdown"></div>
     </div>
   </div>
 
@@ -619,6 +886,55 @@ footer{border-top:0.5px solid rgba(255,255,255,0.06);padding:32px 48px;display:f
       </section>
     </div>
 
+
+    <!-- ── TOP 10 TODAY ── -->
+    <section class="section" id="section-top10">
+      <div class="section-header"><div class="section-title">Top 10 Today</div><a class="section-more" href="#" onclick="event.preventDefault();openTrendingPage('today')">SEE ALL &rarr;</a></div>
+      <div class="movie-row" id="top10-today-row"></div>
+    </section>
+
+    <!-- ── WEEKLY / MONTHLY TRENDING TABS ── -->
+    <section class="section" id="section-trending-tabs">
+      <div class="section-header" style="margin-bottom:14px"><div class="section-title">Trending</div></div>
+      <div class="trending-tabs-wrap" style="padding:0 0 14px;">
+        <div class="trending-tabs">
+          <button class="trending-tab active" onclick="switchTrendingTab('daily',this)">📅 Today</button>
+          <button class="trending-tab" onclick="switchTrendingTab('weekly',this)">📊 This Week</button>
+          <button class="trending-tab" onclick="switchTrendingTab('monthly',this)">📆 This Month</button>
+        </div>
+      </div>
+      <div class="movie-row" id="trending-tabs-row"></div>
+    </section>
+
+    <!-- ── COUNTRY-WISE TRENDING ── -->
+    <section class="section" id="section-country">
+      <div class="section-header" style="margin-bottom:10px"><div class="section-title">Trending by Country</div></div>
+      <div class="country-filter-wrap" style="padding:0 0 16px;">
+        <span class="country-filter-label">REGION</span>
+        <span class="country-chip active" onclick="switchCountry('',this)">🌍 Global</span>
+        <span class="country-chip" onclick="switchCountry('BD',this)">🇧🇩 Bangladesh</span>
+        <span class="country-chip" onclick="switchCountry('IN',this)">🇮🇳 India</span>
+        <span class="country-chip" onclick="switchCountry('US',this)">🇺🇸 USA</span>
+        <span class="country-chip" onclick="switchCountry('KR',this)">🇰🇷 Korea</span>
+        <span class="country-chip" onclick="switchCountry('JP',this)">🇯🇵 Japan</span>
+        <span class="country-chip" onclick="switchCountry('GB',this)">🇬🇧 UK</span>
+        <span class="country-chip" onclick="switchCountry('TR',this)">🇹🇷 Turkey</span>
+      </div>
+      <div class="movie-row" id="country-row"></div>
+    </section>
+
+    <!-- ── UPCOMING RELEASES COUNTDOWN ── -->
+    <section class="section" id="section-upcoming">
+      <div class="section-header"><div class="section-title">Upcoming Releases</div><a class="section-more" href="#" onclick="event.preventDefault();openSeeAllPage('Upcoming Releases','upcoming')">SEE ALL &rarr;</a></div>
+      <div class="movie-row" id="upcoming-row" style="align-items:stretch;"></div>
+    </section>
+
+    <!-- ── COLLECTIONS ── -->
+    <section class="section" id="section-collections">
+      <div class="section-header"><div class="section-title">Collections</div></div>
+      <div class="collections-row" id="collections-row"></div>
+    </section>
+
   </main>
 
   <footer>
@@ -630,16 +946,48 @@ footer{border-top:0.5px solid rgba(255,255,255,0.06);padding:32px 48px;display:f
 <!-- CATEGORY PAGE -->
 <div id="cat-page">
   <div class="cat-page-nav">
-    <div class="nav-logo" onclick="showHome()"><span>C</span>INEMON</div>
-    <div class="nav-avatar">C</div>
+    <div class="nav-logo" onclick="goHome()"><span>C</span>INEMON</div>
+    <div class="nav-avatar" onclick="openSettingsModal()">C</div>
   </div>
   <div class="cat-page-header">
-    <button class="cat-back-btn" onclick="showHome()">
+    <button class="cat-back-btn" onclick="showHome(_popScroll())">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
     <div class="cat-page-title" id="cat-page-title">Genre</div>
   </div>
   <div class="cat-movies-grid" id="cat-movies-grid"></div>
+</div>
+
+
+<!-- ACTOR / DIRECTOR PROFILE PAGE -->
+<div id="profile-page">
+  <div class="page-topbar">
+    <button class="page-back" id="profile-back-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="page-topbar-title" id="profile-page-topbar-title">Profile</div>
+  </div>
+  <div class="profile-hero">
+    <div class="profile-backdrop" id="profile-backdrop"></div>
+    <div class="profile-backdrop-fade"></div>
+    <div class="profile-photo-wrap">
+      <div class="profile-photo-ph" id="profile-photo-ph">?</div>
+      <img class="profile-photo" id="profile-photo" src="" alt="" style="display:none;">
+      <div id="profile-info-hero">
+        <div class="profile-role-badge" id="profile-role-badge">ACTOR</div>
+        <h1 id="profile-name">—</h1>
+        <div class="profile-meta-row" id="profile-meta-row"></div>
+      </div>
+    </div>
+  </div>
+  <div class="profile-body">
+    <div class="profile-stats" id="profile-stats"></div>
+    <p class="profile-bio" id="profile-bio">Loading…</p>
+    <div class="profile-section-title">Known For</div>
+    <div class="movie-row" id="profile-movies-row" style="margin-bottom:24px;"></div>
+    <div class="profile-section-title" id="profile-credits-title" style="display:none;">All Credits</div>
+    <div class="movie-row" id="profile-credits-row"></div>
+  </div>
 </div>
 
 <!-- DOWNLOAD PAGE (alada fullscreen page) -->
@@ -704,6 +1052,15 @@ footer{border-top:0.5px solid rgba(255,255,255,0.06);padding:32px 48px;display:f
       <div class="related-row" id="player-related-row"></div>
     </div>
   </div>
+</div>
+
+
+<!-- FLOATING REQUEST BUTTON -->
+<div style="position:fixed;bottom:28px;right:24px;z-index:200;">
+  <button class="fab-request" onclick="openRequestModal()" title="Request a Movie/Series">
+    <span class="fab-tooltip">Request a title</span>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+  </button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
@@ -894,11 +1251,344 @@ const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMG  = 'https://image.tmdb.org/t/p/w342';
 const palettes  = ['pal-1','pal-2','pal-3','pal-4','pal-5','pal-6','pal-7','pal-8'];
 
+/* ---- 18+ / Adult content filter (Settings toggle) ---- */
+const ADULT_PREF_KEY = 'cm_show_adult';
+function getShowAdult() {
+  try { return localStorage.getItem(ADULT_PREF_KEY) === '1'; } catch { return false; }
+}
+function setShowAdult(v) {
+  try { localStorage.setItem(ADULT_PREF_KEY, v ? '1' : '0'); } catch {}
+}
+
 async function tmdbFetch(endpoint) {
-  const sep = endpoint.includes('?') ? '&' : '?';
-  const res = await fetch(`${TMDB_BASE}${endpoint}${sep}api_key=${TMDB_API_KEY}`);
+  const hideAdult = !getShowAdult();
+  let ep = endpoint;
+  // For discover/search endpoints, ask TMDB itself to exclude adult titles
+  if (hideAdult && /^\/(discover|search)\//.test(ep) && !/include_adult=/.test(ep)) {
+    const sep0 = ep.includes('?') ? '&' : '?';
+    ep = `${ep}${sep0}include_adult=false`;
+  }
+  const sep = ep.includes('?') ? '&' : '?';
+  const res = await fetch(`${TMDB_BASE}${ep}${sep}api_key=${TMDB_API_KEY}`);
   if (!res.ok) throw new Error('TMDB error: ' + res.status);
-  return res.json();
+  const data = await res.json();
+  // Belt-and-suspenders: also strip any adult-flagged items TMDB still returned
+  // (trending/popular endpoints don't accept include_adult, so this is the only guard there)
+  if (hideAdult && Array.isArray(data.results)) {
+    data.results = data.results.filter(item => !item.adult);
+  }
+  return data;
+}
+
+/* ── Jikan (MAL) fetch — same 18+ filter applied to anime lists ── */
+function _isAdultAnime(a) {
+  const rating = (a && a.rating) || '';
+  const genres = [...(a?.genres||[]), ...(a?.explicit_genres||[])].map(g => (g.name||'').toLowerCase());
+  return /rx\s*-/i.test(rating) || genres.includes('hentai') || genres.includes('erotica');
+}
+async function jikanFetch(endpoint) {
+  const hideAdult = !getShowAdult();
+  let ep = endpoint;
+  if (hideAdult && !/sfw=/.test(ep)) {
+    const sep0 = ep.includes('?') ? '&' : '?';
+    ep = `${ep}${sep0}sfw=true`;
+  }
+  const res = await fetch(ep);
+  if (!res.ok) throw new Error('Jikan error: ' + res.status);
+  const data = await res.json();
+  if (hideAdult && Array.isArray(data.data)) {
+    data.data = data.data.filter(a => !_isAdultAnime(a));
+  }
+  return data;
+}
+
+/* ============================================================
+   SMART SEARCH ENGINE
+   Fuzzy + typo tolerance + Bangla<->English transliteration +
+   phonetic matching + alias/synonym search + ranking + caching
+   ============================================================ */
+
+// ---- 1. Bangla -> Latin phonetic transliteration table ----
+const BN_MAP = {
+  'অ':'a','আ':'a','ই':'i','ঈ':'i','উ':'u','ঊ':'u','ঋ':'ri','এ':'e','ঐ':'oi','ও':'o','ঔ':'ou',
+  'ক':'k','খ':'kh','গ':'g','ঘ':'gh','ঙ':'ng',
+  'চ':'ch','ছ':'chh','জ':'j','ঝ':'jh','ঞ':'n',
+  'ট':'t','ঠ':'th','ড':'d','ঢ':'dh','ণ':'n',
+  'ত':'t','থ':'th','দ':'d','ধ':'dh','ন':'n',
+  'প':'p','ফ':'ph','ব':'b','ভ':'bh','ম':'m',
+  'য':'j','র':'r','ল':'l','শ':'sh','ষ':'sh','স':'s','হ':'h',
+  'ড়':'r','ঢ়':'rh','য়':'y','ৎ':'t','ং':'ng','ঃ':'h','ঁ':'',
+  'া':'a','ি':'i','ী':'i','ু':'u','ূ':'u','ৃ':'ri','ে':'e','ৈ':'oi','ো':'o','ৌ':'ou','্':'',
+  '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9',
+};
+function transliterateBn(str) {
+  let out = '';
+  for (const ch of str) out += (BN_MAP[ch] !== undefined ? BN_MAP[ch] : ch);
+  return out;
+}
+function hasBangla(str) { return /[\u0980-\u09FF]/.test(str); }
+
+// ---- 2. Normalize: lowercase, strip punctuation/diacritics, collapse spaces ----
+function normalizeStr(str) {
+  let s = (str || '').toString().trim().toLowerCase();
+  if (hasBangla(s)) s = transliterateBn(s);
+  s = s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+  s = s.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  return s;
+}
+// "phonetic key": collapses doubled letters & common interchangeable sounds
+// so saiyaara/saiyara/sayara/saiara/saira all converge close together
+function phoneticKey(str) {
+  let s = normalizeStr(str);
+  s = s.replace(/([a-z])\1+/g, '$1');           // remove doubled letters
+  s = s.replace(/ph/g, 'f').replace(/v/g, 'b'); // common interchange
+  s = s.replace(/[aeiou]/g, '');                 // drop vowels for skeleton match
+  return s;
+}
+
+// ---- 3. Levenshtein distance ----
+function levenshtein(a, b) {
+  a = a || ''; b = b || '';
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  let prev = Array.from({length:n+1}, (_,i)=>i);
+  for (let i=1;i<=m;i++) {
+    const cur = [i];
+    for (let j=1;j<=n;j++) {
+      cur[j] = a[i-1]===b[j-1] ? prev[j-1] : 1+Math.min(prev[j-1],prev[j],cur[j-1]);
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+
+// ---- 4. Alias / synonym dictionary (seed set, extendable). Keys are
+//    lowercase canonical titles -> array of alternate spellings, nicknames,
+//    and Bangla renderings. This is what an "AI alias generator" would
+//    populate automatically when a movie is imported from TMDB. ----
+const ALIAS_DICT = {
+  'saiyaara': ['saiyara','sayara','saiara','saira','সাইয়ারা','সায়ারা','সাইআরা'],
+  'avengers: endgame': ['avengers','avenjers','avenger','endgame','end game','এভেঞ্জার্স','অ্যাভেঞ্জার্স','এভেনজার্স','এন্ডগেম','avengers endgame','avenger endgame'],
+  'avengers: infinity war': ['infinity war','infinitywar','ইনফিনিটি ওয়ার','অ্যাভেঞ্জার্স ইনফিনিটি ওয়ার'],
+  'spider-man': ['spiderman','স্পাইডারম্যান','স্পাইডার ম্যান'],
+  'pathaan': ['পাঠান','pathan'],
+  'jawan': ['জাওয়ান'],
+  'animal': ['অ্যানিমেল'],
+};
+// Build alias -> canonical lookup, and canonical -> normalized aliases (incl. title itself)
+let _aliasReverse = {};   // normalized alias -> normalized canonical key
+let _aliasGroups   = {};  // normalized canonical key -> [normalized variants...]
+(function buildAliasIndex(){
+  for (const canonical in ALIAS_DICT) {
+    const normKey = normalizeStr(canonical);   // e.g. "avengers endgame" (colon stripped)
+    const variants = [canonical, normalizeStr(canonical), ...ALIAS_DICT[canonical]]
+                       .map(normalizeStr).filter(Boolean);
+    _aliasGroups[normKey] = [...new Set(variants)];
+    variants.forEach(v => { _aliasReverse[v] = normKey; });
+    // also register the raw canonical spelling
+    _aliasReverse[canonical.toLowerCase()] = normKey;
+  }
+})();
+// Allow runtime registration, e.g. when AI alias generation runs on new TMDB imports
+function registerAlias(canonicalTitle, aliasList) {
+  const key = canonicalTitle.toLowerCase();
+  ALIAS_DICT[key] = [...new Set([...(ALIAS_DICT[key]||[]), ...aliasList])];
+  const normKey = normalizeStr(key);
+  const variants = [key, normKey, ...ALIAS_DICT[key]].map(normalizeStr).filter(Boolean);
+  _aliasGroups[normKey] = [...new Set(variants)];
+  variants.forEach(v => { _aliasReverse[v] = normKey; });
+}
+
+// ---- 5. Query expansion: turn one user query into several TMDB/Jikan
+//    queries so Bangla, typo'd, or aliased input still hits the right title.
+function expandQueryVariants(rawQuery) {
+  const variants = new Set();
+  const norm = normalizeStr(rawQuery);
+  if (!norm) return [];
+  variants.add(rawQuery.trim());
+
+  // Bangla input -> add transliterated Latin form
+  if (hasBangla(rawQuery)) variants.add(norm);
+
+  // Direct alias hit (exact normalized match)
+  if (_aliasReverse[norm]) variants.add(_aliasReverse[norm]);
+
+  // Fuzzy alias hit: nearest alias within edit-distance tolerance
+  // (catches "Avenjers", "Sayara", partial Bangla spellings, etc.)
+  let best = null, bestDist = Infinity;
+  for (const aliasNorm in _aliasReverse) {
+    const tolerance = Math.max(1, Math.floor(aliasNorm.length * 0.34));
+    const d = levenshtein(norm, aliasNorm);
+    if (d <= tolerance && d < bestDist) { bestDist = d; best = _aliasReverse[aliasNorm]; }
+    // also allow prefix/contains for partial typing ("end game" inside longer alias)
+    if (aliasNorm.includes(norm) || norm.includes(aliasNorm)) variants.add(_aliasReverse[aliasNorm]);
+  }
+  if (best) variants.add(best);
+
+  return [...variants].slice(0, 4); // cap fan-out for speed
+}
+
+// ---- 6. Scoring a result item against the raw query ----
+function scoreResult(rawQuery, item) {
+  const q = normalizeStr(rawQuery);
+  const qPhonetic = phoneticKey(rawQuery);
+  const title = normalizeStr(item.title);
+  const titlePhonetic = phoneticKey(item.title);
+
+  // Alias lookup: title is already normalized so it matches the normalized key in _aliasGroups
+  const aliasVariants = _aliasGroups[title] || [];
+
+  let score = 0;
+
+  if (q === title) score = 1000;                                   // 1. exact match
+  else if (aliasVariants.includes(q)) score = 900;                  // 2. alias match
+  else {
+    const dist = levenshtein(q, title);
+    const tolerance = Math.max(1, Math.floor(title.length * 0.34));
+    if (dist <= tolerance) score = 800 - dist * 30;                 // 3. fuzzy match
+    else if (aliasVariants.some(a => levenshtein(q,a) <= Math.max(1,Math.floor(a.length*0.34))))
+      score = 750;                                                   // 4. alias fuzzy/transliteration
+    else if (title.startsWith(q)) score = 650;                       // 5a. prefix
+    else if (title.includes(q) || q.includes(title)) score = 550;    // 5b. partial
+    else if (qPhonetic && titlePhonetic && (titlePhonetic.includes(qPhonetic) || qPhonetic.includes(titlePhonetic)))
+      score = 400;                                                   // 6. phonetic/similar
+    else score = 0;
+  }
+
+  if (score > 0) {
+    score += Math.min(50, (item.rating !== '—' ? parseFloat(item.rating) : 0) * 5); // popularity boost
+    if (POPULAR_BOOST.has(title)) score += 60;                                       // popular search boost
+  }
+  return score;
+}
+// ---- 7. Highlight matched substring in rendered title ----
+function highlightTitle(title, rawQuery) {
+  const q = rawQuery.trim();
+  if (!q) return title;
+  try {
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp('(' + escaped + ')', 'ig');
+    if (re.test(title)) return title.replace(re, '<mark>$1</mark>');
+  } catch {}
+  return title; // typo'd / Bangla query won't substring-match Latin title — leave plain
+}
+
+// ---- 8. Recent + trending searches (localStorage) ----
+const RECENT_KEY = 'cinemon_recent_searches';
+const TREND_KEY  = 'cinemon_search_counts';
+const POPULAR_BOOST = new Set(['saiyaara','avengers: endgame','pathaan','jawan','animal']);
+
+function getRecentSearches() {
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { list = []; }
+  // backward-compat: earlier version stored plain strings instead of {q, poster}
+  return list.map(x => typeof x === 'string' ? { q: x, poster: null } : x);
+}
+function addRecentSearch(q, poster) {
+  if (!q || !q.trim()) return;
+  let list = getRecentSearches().filter(x => x.q.toLowerCase() !== q.trim().toLowerCase());
+  list.unshift({ q: q.trim(), poster: poster || null });
+  list = list.slice(0, 8);
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch {}
+}
+function removeRecentSearch(q, ev) {
+  if (ev) ev.stopPropagation();
+  const list = getRecentSearches().filter(x => x.q.toLowerCase() !== q.toLowerCase());
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch {}
+  showSearchSuggestions();
+}
+function clearRecentSearches() {
+  try { localStorage.removeItem(RECENT_KEY); } catch {}
+  showSearchSuggestions();
+}
+function bumpSearchCount(q) {
+  if (!q || !q.trim()) return;
+  let counts = {};
+  try { counts = JSON.parse(localStorage.getItem(TREND_KEY)) || {}; } catch {}
+  const key = q.trim().toLowerCase();
+  counts[key] = (counts[key] || 0) + 1;
+  try { localStorage.setItem(TREND_KEY, JSON.stringify(counts)); } catch {}
+}
+function getTrendingSearches() {
+  let counts = {};
+  try { counts = JSON.parse(localStorage.getItem(TREND_KEY)) || {}; } catch {}
+  const seeded = { saiyaara: 12, 'avengers endgame': 9, pathaan: 6, jawan: 4 };
+  for (const k in seeded) counts[k] = (counts[k] || 0) + seeded[k];
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k])=>k);
+}
+
+// ---- 9. Suggestion dropdown UI — YouTube-style: history icon + text + thumbnail ----
+const _HISTORY_ICON = '<svg class="suggest-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v5h5"/><path d="M3.05 13a9 9 0 1 0 2.13-7.72L3 8"/><path d="M12 7v5l3 3"/></svg>';
+const _TREND_ICON   = '<svg class="suggest-icon trending-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>';
+function _escJs(s){ return String(s).replace(/'/g,"\\'"); }
+
+function renderSuggestDropdown(container) {
+  if (!container) return;
+  const recent   = getRecentSearches();
+  const trending = getTrendingSearches();
+
+  if (!recent.length && !trending.length) {
+    container.innerHTML = '<div class="suggest-empty">এখনো কোনো search history নেই</div>';
+    return;
+  }
+
+  let html = '';
+  if (recent.length) {
+    html += recent.map(r => `
+      <div class="suggest-row" onclick="runSuggestedSearch('${_escJs(r.q)}')">
+        ${_HISTORY_ICON}
+        <span class="suggest-text">${r.q}</span>
+        ${r.poster ? `<img class="suggest-thumb" src="${r.poster}" alt="" loading="lazy">` : ''}
+        <button class="suggest-remove" onclick="removeRecentSearch('${_escJs(r.q)}', event)">&times;</button>
+      </div>`).join('');
+  }
+  if (trending.length) {
+    html += `<div class="suggest-section-label">Trending</div>`;
+    html += trending.map(t => `
+      <div class="suggest-row" onclick="runSuggestedSearch('${_escJs(t)}')">
+        ${_TREND_ICON}
+        <span class="suggest-text">${t}</span>
+      </div>`).join('');
+  }
+  container.innerHTML = html;
+}
+
+function activeSuggestDropdown() {
+  const navInput = document.getElementById('search-input');
+  return (document.activeElement === navInput)
+    ? document.getElementById('nav-suggest-dropdown')
+    : document.getElementById('hero-suggest-dropdown');
+}
+function showSearchSuggestions() {
+  const dropdown = activeSuggestDropdown();
+  if (!dropdown) return;
+  renderSuggestDropdown(dropdown);
+  dropdown.classList.add('open');
+}
+function hideSuggestDropdowns() {
+  document.getElementById('nav-suggest-dropdown')?.classList.remove('open');
+  document.getElementById('hero-suggest-dropdown')?.classList.remove('open');
+}
+// close dropdown on outside click
+document.addEventListener('click', function(e){
+  const navDD  = document.getElementById('nav-suggest-dropdown');
+  const heroDD = document.getElementById('hero-suggest-dropdown');
+  const navInput  = document.getElementById('search-input');
+  const heroInput = document.getElementById('search-hero-input');
+  if (!navDD || !heroDD) return;
+  const insideNav  = navDD.contains(e.target)  || (navInput  && navInput.contains(e.target));
+  const insideHero = heroDD.contains(e.target) || (heroInput && heroInput.contains(e.target));
+  if (!insideNav)  navDD.classList.remove('open');
+  if (!insideHero) heroDD.classList.remove('open');
+});
+
+function runSuggestedSearch(q) {
+  const navInput = document.getElementById('search-input');
+  const heroInput = document.getElementById('search-hero-input');
+  if (navInput) navInput.value = q;
+  if (heroInput) heroInput.value = q;
+  hideSuggestDropdowns();
+  handleSearch(q);
 }
 
 function mapTmdbItem(item, idx, type) {
@@ -965,7 +1655,7 @@ function makeCard(m, idx, type) {
       <div class="card-rank">${idx+1}</div>
     </div>
     <div class="card-info">
-      <div class="card-name">${m.title}</div>
+      <div class="card-name">${m._hlTitle || m.title}</div>
       <div class="card-sub"><span class="card-rating">&#9733; ${m.rating}</span><span>${m.year}</span>${m.episodes?`<span>${m.episodes} ep</span>`:''}</div>
     </div>
   </div>`;
@@ -1001,60 +1691,15 @@ async function loadTopPicks() {
   }
 }
 
-/* ── Dynamic Hero Banner — TMDB থেকে latest now-playing movie ── */
-async function loadHeroBanner() {
-  try {
-    const GENRE_MAP = {28:'Action',12:'Adventure',16:'Animation',35:'Comedy',80:'Crime',
-      18:'Drama',14:'Fantasy',27:'Horror',10749:'Romance',878:'Sci-Fi',53:'Thriller',10752:'War'};
-    const d = await tmdbFetch('/movie/now_playing?language=en-US&page=1');
-    const movies = (d.results||[]).filter(m => m.backdrop_path && m.poster_path && m.overview);
-    if (!movies.length) return;
-    const m = movies[0];
-    const title = m.title || m.name || '';
-    const year  = (m.release_date||'').slice(0,4);
-    const score = m.vote_average ? '★ ' + m.vote_average.toFixed(1) : '—';
-    const genres = (m.genre_ids||[]).slice(0,2).map(id => GENRE_MAP[id]).filter(Boolean).join(' · ') || 'Movie';
-    const overview = m.overview ? (m.overview.length > 160 ? m.overview.slice(0,157)+'…' : m.overview) : '';
-    const posterUrl = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null;
-    const bgUrl     = m.backdrop_path ? `https://image.tmdb.org/t/p/w1280${m.backdrop_path}` : null;
-
-    // Update text
-    document.getElementById('hero-title').textContent = title.toUpperCase();
-    document.getElementById('hero-poster-title').textContent = title.split(' ').slice(-1)[0].toUpperCase();
-    document.getElementById('hero-year').textContent   = year;
-    document.getElementById('hero-score').textContent  = score;
-    document.getElementById('hero-genre').textContent  = genres;
-    document.getElementById('hero-desc').textContent   = overview;
-    document.getElementById('hero-badge-label').textContent = 'NOW PLAYING';
-
-    // Poster image — mobile: backdrop (landscape), desktop: poster (portrait)
-    const imgWrap = document.getElementById('hero-poster-img-wrap');
-    const isMobile = window.innerWidth <= 768;
-    const imgSrc = isMobile ? (bgUrl || posterUrl) : posterUrl;
-    if (imgSrc) {
-      imgWrap.innerHTML = `<img src="${imgSrc}" alt="${title}"
-        style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;border-radius:0;">`;
-    }
-
-    // Desktop background glow
-    if (bgUrl) {
-      const bgEl = document.getElementById('hero-bg-img');
-      bgEl.style.backgroundImage = `url('${bgUrl}')`;
-      bgEl.style.backgroundSize  = 'cover';
-      bgEl.style.backgroundPosition = 'center top';
-      bgEl.style.opacity = '0.35';
-    }
-
-    // Buttons
-    const safeTitle = title.replace(/'/g,"\\'");
-    document.getElementById('hero-play-btn').setAttribute('onclick', `openPlayerPage(${m.id},'${safeTitle}')`);
-  } catch(e) { /* silently keep default look */ }
-}
+/* Dynamic Hero Banner is now defined lower in the script as a rotating,
+   countdown-driven "upcoming releases" banner — see loadHeroBanner() near
+   the NOTICE BAR / HERO section. */
 
 /* ============================================================
    SEE ALL PAGE — Trending / Top Picks full list
    ============================================================ */
 async function openSeeAllPage(label, type) {
+  _pushScroll();
   document.getElementById('home').style.display = 'none';
   const pg = document.getElementById('cat-page');
   pg.style.display = 'block';
@@ -1105,26 +1750,37 @@ async function openSeeAllPage(label, type) {
     } else if (type === 'anime-airing') {
       cardType = 'anime';
       const [p1, p2, p3] = await Promise.all([
-        fetch(`${JIKAN_BASE}/anime?status=airing&order_by=popularity&sort=asc&limit=24&page=1`).then(r=>r.json()),
-        fetch(`${JIKAN_BASE}/anime?status=airing&order_by=popularity&sort=asc&limit=24&page=2`).then(r=>r.json()),
-        fetch(`${JIKAN_BASE}/anime?status=airing&order_by=popularity&sort=asc&limit=24&page=3`).then(r=>r.json()),
+        jikanFetch(`${JIKAN_BASE}/anime?status=airing&order_by=popularity&sort=asc&limit=24&page=1`),
+        jikanFetch(`${JIKAN_BASE}/anime?status=airing&order_by=popularity&sort=asc&limit=24&page=2`),
+        jikanFetch(`${JIKAN_BASE}/anime?status=airing&order_by=popularity&sort=asc&limit=24&page=3`),
       ]);
       allItems = [...(p1.data||[]),...(p2.data||[]),...(p3.data||[])].map((a,i)=>mapJikanAnime(a,i));
     } else if (type === 'anime-top') {
       cardType = 'anime';
       const [p1, p2, p3] = await Promise.all([
-        fetch(`${JIKAN_BASE}/top/anime?limit=24&page=1`).then(r=>r.json()),
-        fetch(`${JIKAN_BASE}/top/anime?limit=24&page=2`).then(r=>r.json()),
-        fetch(`${JIKAN_BASE}/top/anime?limit=24&page=3`).then(r=>r.json()),
+        jikanFetch(`${JIKAN_BASE}/top/anime?limit=24&page=1`),
+        jikanFetch(`${JIKAN_BASE}/top/anime?limit=24&page=2`),
+        jikanFetch(`${JIKAN_BASE}/top/anime?limit=24&page=3`),
       ]);
       allItems = [...(p1.data||[]),...(p2.data||[]),...(p3.data||[])].map((a,i)=>mapJikanAnime(a,i));
     } else if (type === 'anime-seasonal') {
       cardType = 'anime';
       const [p1, p2] = await Promise.all([
-        fetch(`${JIKAN_BASE}/seasons/now?limit=24&page=1`).then(r=>r.json()),
-        fetch(`${JIKAN_BASE}/seasons/now?limit=24&page=2`).then(r=>r.json()),
+        jikanFetch(`${JIKAN_BASE}/seasons/now?limit=24&page=1`),
+        jikanFetch(`${JIKAN_BASE}/seasons/now?limit=24&page=2`),
       ]);
       allItems = [...(p1.data||[]),...(p2.data||[])].map((a,i)=>mapJikanAnime(a,i));
+    } else if (type === 'upcoming') {
+      const today  = new Date().toISOString().slice(0,10);
+      const future = new Date(Date.now()+180*24*3600*1000).toISOString().slice(0,10);
+      const [p1, p2, p3] = await Promise.all([
+        tmdbFetch(`/discover/movie?primary_release_date.gte=${today}&primary_release_date.lte=${future}&sort_by=popularity.desc&page=1`),
+        tmdbFetch(`/discover/movie?primary_release_date.gte=${today}&primary_release_date.lte=${future}&sort_by=popularity.desc&page=2`),
+        tmdbFetch(`/discover/movie?primary_release_date.gte=${today}&primary_release_date.lte=${future}&sort_by=popularity.desc&page=3`),
+      ]);
+      allItems = [...(p1.results||[]),...(p2.results||[]),...(p3.results||[])]
+        .filter(m => m.release_date > today)
+        .map((m,i)=>mapTmdbItem(m,i,'movie'));
     }
 
     grid.innerHTML = allItems.length
@@ -1168,7 +1824,7 @@ async function loadAnimeRows() {
   renderSkeletons('anime-seasonal-row', 8);
   // Load sequentially to avoid Jikan rate-limit
   try {
-    const recentRes = await fetch(`${JIKAN_BASE}/anime?status=airing&order_by=start_date&sort=desc&limit=12`).then(r=>r.json());
+    const recentRes = await jikanFetch(`${JIKAN_BASE}/anime?status=airing&order_by=start_date&sort=desc&limit=12`);
     document.getElementById('anime-recent-row').innerHTML =
       (recentRes.data||[]).map((a,i) => mapJikanAnime(a,i)).map((m,i)=>makeCard(m,i,'anime')).join('') ||
       '<div style="color:var(--muted);font-size:13px;padding:20px;">Anime load হয়নি।</div>';
@@ -1177,19 +1833,19 @@ async function loadAnimeRows() {
   }
   await new Promise(r=>setTimeout(r,500));
   try {
-    const airingRes = await fetch(`${JIKAN_BASE}/anime?status=airing&order_by=popularity&sort=asc&limit=12`).then(r=>r.json());
+    const airingRes = await jikanFetch(`${JIKAN_BASE}/anime?status=airing&order_by=popularity&sort=asc&limit=12`);
     document.getElementById('anime-airing-row').innerHTML =
       (airingRes.data||[]).map((a,i) => mapJikanAnime(a,i)).map((m,i)=>makeCard(m,i,'anime')).join('');
   } catch { document.getElementById('anime-airing-row').innerHTML = ''; }
   await new Promise(r=>setTimeout(r,500));
   try {
-    const topRes = await fetch(`${JIKAN_BASE}/top/anime?limit=12`).then(r=>r.json());
+    const topRes = await jikanFetch(`${JIKAN_BASE}/top/anime?limit=12`);
     document.getElementById('anime-top-row').innerHTML =
       (topRes.data||[]).map((a,i) => mapJikanAnime(a,i)).map((m,i)=>makeCard(m,i,'anime')).join('');
   } catch { document.getElementById('anime-top-row').innerHTML = ''; }
   await new Promise(r=>setTimeout(r,500));
   try {
-    const seasonalRes = await fetch(`${JIKAN_BASE}/seasons/now?limit=12`).then(r=>r.json());
+    const seasonalRes = await jikanFetch(`${JIKAN_BASE}/seasons/now?limit=12`);
     document.getElementById('anime-seasonal-row').innerHTML =
       (seasonalRes.data||[]).map((a,i) => mapJikanAnime(a,i)).map((m,i)=>makeCard(m,i,'anime')).join('');
   } catch { document.getElementById('anime-seasonal-row').innerHTML = ''; }
@@ -1215,6 +1871,7 @@ function switchContentTab(tab, el) {
    CATEGORY PAGE — genre অনুযায়ী movies/series দেখাবে
    ============================================================ */
 async function openCategoryPage(name, type, genreId) {
+  _pushScroll();
   document.getElementById('home').style.display = 'none';
   const pg = document.getElementById('cat-page');
   pg.style.display = 'block';
@@ -1268,6 +1925,7 @@ const JIKAN_GENRE_IDS = {
 };
 
 async function openAnimeCategoryPage(name, genreKey) {
+  _pushScroll();
   document.getElementById('home').style.display = 'none';
   const pg = document.getElementById('cat-page');
   pg.style.display = 'block';
@@ -1286,8 +1944,7 @@ async function openAnimeCategoryPage(name, genreKey) {
     const url = genreId
       ? `${JIKAN_BASE}/anime?genres=${genreId}&order_by=popularity&sort=desc&limit=24`
       : `${JIKAN_BASE}/top/anime?limit=24`;
-    const r = await fetch(url);
-    const d = await r.json();
+    const d = await jikanFetch(url);
     const items = (d.data||[]).map((a,i) => mapJikanAnime(a,i));
     grid.innerHTML = items.length
       ? items.map((m,i) => makeCard(m, i, 'anime')).join('')
@@ -1298,19 +1955,39 @@ async function openAnimeCategoryPage(name, genreKey) {
 }
 
 /* ============================================================
+   SCROLL-POSITION MEMORY
+   Every time we navigate to a new overlay/page (cat-page, player-page,
+   dl-page, profile-page) we push the scroll position we're leaving.
+   Every "back" action pops it off and restores it, so going back always
+   lands exactly where the user was — instead of jumping to the top.
+   ============================================================ */
+let _scrollReturnStack = [];
+function _pushScroll() { _scrollReturnStack.push(window.scrollY); }
+function _popScroll()  { return _scrollReturnStack.length ? _scrollReturnStack.pop() : 0; }
+
+/* ============================================================
    SHOW HOME
    ============================================================ */
-function showHome() {
+function showHome(restoreY) {
   document.getElementById('cat-page').style.display  = 'none';
   document.getElementById('dl-page').classList.remove('open');
   document.getElementById('player-page').classList.remove('open');
+  document.getElementById('profile-page').classList.remove('open');
   document.getElementById('home').style.display = 'block';
   closeSearch();
-  window.scrollTo(0,0);
+  requestAnimationFrame(() => window.scrollTo(0, restoreY || 0));
   // Fix 1: iframe clear করো যাতে background-এ আর না বাজে
   const slot = document.getElementById('player-iframe-slot');
   if (slot) slot.innerHTML = '';
   stopWatermarkTimer();
+  if (_nextEpTimer) { clearInterval(_nextEpTimer); _nextEpTimer = null; }
+}
+
+/* Explicit "go to home fresh" — used by the logo, always starts at the top
+   and clears any leftover scroll memory from wherever the user was. */
+function goHome() {
+  _scrollReturnStack = [];
+  showHome(0);
 }
 
 /* ============================================================
@@ -1325,51 +2002,128 @@ function toggleSearch() {
 function openSearch() {
   _searchOpen = true;
   document.getElementById('search-bar').classList.add('open');
-  setTimeout(()=>document.getElementById('search-input').focus(), 360);
+  document.body.style.overflow = 'hidden';
+  setTimeout(()=>document.getElementById('search-input').focus(), 300);
+}
+// Pins the top nav into "search mode" (full bar + back arrow) no matter which
+// input (nav icon or hero box) actually triggered the search — this is what
+// gives every search a visible, stays-put box with a way to go back.
+function ensureNavSearchBarOpen(q) {
+  _searchOpen = true;
+  document.getElementById('search-bar').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  const navInput = document.getElementById('search-input');
+  if (navInput && document.activeElement !== navInput) navInput.value = q;
 }
 function closeSearch() {
   _searchOpen = false;
   document.getElementById('search-bar').classList.remove('open');
   document.getElementById('search-input').value = '';
+  const heroInput = document.getElementById('search-hero-input');
+  if (heroInput) heroInput.value = '';
   document.getElementById('search-results-overlay').classList.remove('open');
+  document.getElementById('nav-suggest-dropdown')?.classList.remove('open');
+  document.getElementById('hero-suggest-dropdown')?.classList.remove('open');
+  document.body.style.overflow = 'auto';
   if (_searchTimer) { clearTimeout(_searchTimer); _searchTimer = null; }
 }
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') { hideSuggestDropdowns(); if (_searchOpen) closeSearch(); }
+});
+
+// simple in-memory cache so repeated/typed-then-deleted-then-retyped queries are instant
+const _searchCache = new Map();
+const SEARCH_CACHE_TTL = 5 * 60 * 1000;
 
 async function handleSearch(q) {
   // hero search input sync
   const heroInput = document.getElementById('search-hero-input');
   const navInput  = document.getElementById('search-input');
   if (heroInput && document.activeElement === heroInput && navInput) navInput.value = q;
+  if (navInput && document.activeElement === navInput && heroInput) heroInput.value = q;
 
-  const overlay = document.getElementById('search-results-overlay');
-  const grid    = document.getElementById('search-results-grid');
-  if (!q.trim()) { overlay.classList.remove('open'); return; }
+  const overlay   = document.getElementById('search-results-overlay');
+  const grid      = document.getElementById('search-results-grid');
+  const zone      = document.getElementById('search-suggestions-zone');
+  const titleWrap = document.getElementById('search-results-title-wrap');
 
+  if (!q.trim()) { zone.innerHTML=''; titleWrap.style.display='none'; overlay.classList.remove('open'); hideSuggestDropdowns(); return; }
+
+  hideSuggestDropdowns();
+  ensureNavSearchBarOpen(q);
+  zone.innerHTML = '';
+  titleWrap.style.display = 'block';
   document.getElementById('search-query-label').textContent = q;
   overlay.classList.add('open');
+  window.scrollTo({top:0, behavior:'smooth'});
   grid.innerHTML = Array.from({length:6}).map(()=>
     `<div class="card" style="flex:0 0 var(--card-w)"><div class="card-poster skeleton"></div><div class="card-info"><div class="card-name">&nbsp;</div></div></div>`
   ).join('');
 
   if (_searchTimer) clearTimeout(_searchTimer);
-  _searchTimer = setTimeout(async ()=>{
-    try {
-      const [movies, series, anime] = await Promise.all([
-        tmdbFetch(`/search/movie?query=${encodeURIComponent(q)}`),
-        tmdbFetch(`/search/tv?query=${encodeURIComponent(q)}`),
-        fetch(`${JIKAN_BASE}/anime?q=${encodeURIComponent(q)}&limit=6`).then(r=>r.json()).catch(()=>({data:[]})),
-      ]);
-      const movieCards  = (movies.results||[]).slice(0,6).map((m,i) => mapTmdbItem(m,i,'movie'));
-      const seriesCards = (series.results||[]).slice(0,4).map((m,i) => mapTmdbItem(m,i,'tv'));
-      const animeCards  = (anime.data||[]).slice(0,4).map((a,i)  => mapJikanAnime(a,i));
-      const all = [...movieCards, ...seriesCards, ...animeCards];
-      grid.innerHTML = all.length
-        ? all.map((m,i)=>makeCard(m,i,m.type)).join('')
-        : `<div style="color:var(--muted);font-size:13px;padding:20px;">"${q}" এর কোনো result পাওয়া যায়নি।</div>`;
-    } catch {
-      grid.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px;">Search error।</div>';
+  _searchTimer = setTimeout(async () => {
+    // bail if input changed again after debounce fired (instant-search safety)
+    const liveVal = (document.activeElement===heroInput ? heroInput?.value : navInput?.value) ?? q;
+    if (liveVal.trim() !== q.trim()) return;
+
+    const cacheKey = normalizeStr(q);
+    const cached = _searchCache.get(cacheKey);
+    if (cached && (Date.now() - cached.ts) < SEARCH_CACHE_TTL) {
+      renderSearchResults(q, cached.data);
+      addRecentSearch(q, cached.data?.[0]?.poster); bumpSearchCount(q);
+      return;
     }
-  }, 420);
+
+    try {
+      const variants = expandQueryVariants(q); // typo/Bangla/alias-aware expansion
+      const reqs = [];
+      variants.forEach(v => {
+        reqs.push(tmdbFetch(`/search/movie?query=${encodeURIComponent(v)}`).catch(()=>({results:[]})));
+        reqs.push(tmdbFetch(`/search/tv?query=${encodeURIComponent(v)}`).catch(()=>({results:[]})));
+        reqs.push(jikanFetch(`${JIKAN_BASE}/anime?q=${encodeURIComponent(v)}&limit=6`).catch(()=>({data:[]})));
+      });
+      const results = await Promise.all(reqs);
+
+      const movieCards = [], seriesCards = [], animeCards = [];
+      for (let i = 0; i < results.length; i += 3) {
+        (results[i].results||[]).forEach((m,idx)=>movieCards.push(mapTmdbItem(m,idx,'movie')));
+        (results[i+1].results||[]).forEach((m,idx)=>seriesCards.push(mapTmdbItem(m,idx,'tv')));
+        (results[i+2].data||[]).forEach((a,idx)=>animeCards.push(mapJikanAnime(a,idx)));
+      }
+      // dedupe by type+id
+      const dedupe = arr => { const seen=new Set(); return arr.filter(x=>{const k=x.type+x.id; if(seen.has(k))return false; seen.add(k); return true;}); };
+      let all = dedupe([...movieCards, ...seriesCards, ...animeCards]);
+
+      // rank
+      all = all.map(item => ({ item, score: scoreResult(q, item) }))
+                .filter(x => x.score > 0)
+                .sort((a,b) => b.score - a.score)
+                .map(x => x.item)
+                .slice(0, 18);
+
+      _searchCache.set(cacheKey, { ts: Date.now(), data: all });
+      renderSearchResults(q, all);
+      addRecentSearch(q, all?.[0]?.poster); bumpSearchCount(q);
+    } catch {
+      grid.innerHTML = '<div class="search-no-results">Search error হয়েছে। আবার চেষ্টা করুন।</div>';
+    }
+  }, 300); // debounced 300ms
+}
+
+function renderSearchResults(q, all) {
+  const grid = document.getElementById('search-results-grid');
+  if (!all.length) {
+    const suggestions = getTrendingSearches();
+    grid.innerHTML = `<div class="search-no-results">
+      "${q}" এর কোনো result পাওয়া যায়নি। বানান চেক করুন অথবা নিচের থেকে ট্রাই করুন —
+      <div class="search-chips-row">
+        ${suggestions.map(s=>`<span class="search-chip" onclick="runSuggestedSearch('${s.replace(/'/g,"\\'")}')">${s}</span>`).join('')}
+      </div>
+    </div>`;
+    return;
+  }
+  all.forEach(m => { m._hlTitle = highlightTitle(m.title, q); });
+  grid.innerHTML = all.map((m,i)=>makeCard(m,i,m.type)).join('');
 }
 
 /* ============================================================
@@ -1384,8 +2138,10 @@ let dlQuality = '720p';
 let dlTitle   = '';
 let dlId      = null;
 let dlTimer   = null;
+let _nextEpTimer = null;
 
 function openDownloadPage(title, tmdbId) {
+  _pushScroll();
   dlTitle   = title;
   dlId      = tmdbId;
   dlQuality = '720p';
@@ -1401,11 +2157,11 @@ function openDownloadPage(title, tmdbId) {
   document.getElementById('dl-progress-fill-page').style.width = '0%';
   if (dlTimer) { clearInterval(dlTimer); dlTimer = null; }
 
-  // back button — kat-page থেকে এলে সেখানে ফিরবে
+  // back button — kat-page থেকে এলে সেখানে ফিরবে, নাহলে home-এর আগের position-এ
   const fromCat = document.getElementById('cat-page').style.display === 'block';
   document.getElementById('dl-back-btn').onclick = fromCat
-    ? ()=>{ document.getElementById('dl-page').classList.remove('open'); window.scrollTo(0,0); }
-    : showHome;
+    ? ()=>{ document.getElementById('dl-page').classList.remove('open'); window.scrollTo(0, _popScroll()); }
+    : ()=> showHome(_popScroll());
 
   document.getElementById('dl-page').classList.add('open');
   window.scrollTo(0,0);
@@ -2060,8 +2816,7 @@ async function loadRelatedAnime(malId) {
     });
     if (!items.length) {
       // fallback: load top anime of same type
-      const fb = await fetch(`${JIKAN_BASE}/top/anime?limit=12`);
-      const fd = await fb.json();
+      const fd = await jikanFetch(`${JIKAN_BASE}/top/anime?limit=12`);
       const fItems = (fd.data || []).map((a, i) => mapJikanAnime(a, i));
       row.innerHTML = fItems.map(m => {
         const safeT = (m.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
@@ -2133,6 +2888,7 @@ async function loadRelated(id, type) {
 }
 
 async function openPlayerPage(tmdbId, title) {
+  _pushScroll();
   // Reset state & clear old iframe immediately
   _currentTmdbId = null; _currentMalId = null; _animeSeasonMap = [];
   _currentSeason = 1; _currentEpisode = 1; _currentSrcIdx = 0; _currentType = 'movie';
@@ -2152,9 +2908,9 @@ async function openPlayerPage(tmdbId, title) {
         if (slot) slot.innerHTML = '';
         stopWatermarkTimer();
         document.getElementById('player-page').classList.remove('open');
-        window.scrollTo(0,0);
+        window.scrollTo(0, _popScroll());
       }
-    : () => { showHome(); };
+    : () => { showHome(_popScroll()); };
 
   document.getElementById('player-page').classList.add('open');
   window.scrollTo(0,0);
@@ -2166,9 +2922,12 @@ async function openPlayerPage(tmdbId, title) {
     return;
   }
   loadIframe(tmdbId, 0);
+  // Inject extras after player loads
+  _injectMovieExtras(tmdbId, 'movie', title);
 }
 
 async function openSeriesPlayer(tmdbId, title) {
+  _pushScroll();
   // Reset state & clear old iframe immediately
   _currentTmdbId = null; _currentMalId = null; _animeSeasonMap = [];
   _currentSeason = 1; _currentEpisode = 1; _currentSrcIdx = 0; _currentType = 'tv';
@@ -2188,9 +2947,9 @@ async function openSeriesPlayer(tmdbId, title) {
         if (slot) slot.innerHTML = '';
         stopWatermarkTimer();
         document.getElementById('player-page').classList.remove('open');
-        window.scrollTo(0,0);
+        window.scrollTo(0, _popScroll());
       }
-    : () => { showHome(); };
+    : () => { showHome(_popScroll()); };
 
   document.getElementById('player-page').classList.add('open');
   window.scrollTo(0,0);
@@ -2202,6 +2961,7 @@ async function openSeriesPlayer(tmdbId, title) {
     return;
   }
   loadSeriesIframe(tmdbId, 1, 1, 0);
+  _injectMovieExtras(tmdbId, 'tv', title);
 }
 
 /* ── Anime: resolve MAL ID → TMDB ID (3-strategy, same as enzo-fixed) ── */
@@ -2348,6 +3108,7 @@ async function _buildAnimeSeasonChain(rootMalId, rootTitle) {
 }
 
 async function openAnimePlayer(malId, title) {
+  _pushScroll();
   document.getElementById('player-page-topbar-title').textContent = title;
   document.getElementById('player-page-movie-title').textContent  = title;
   document.getElementById('player-page-movie-meta').textContent   = 'Anime';
@@ -2359,9 +3120,9 @@ async function openAnimePlayer(malId, title) {
         if (slot) slot.innerHTML = '';
         stopWatermarkTimer();
         document.getElementById('player-page').classList.remove('open');
-        window.scrollTo(0,0);
+        window.scrollTo(0, _popScroll());
       }
-    : () => { showHome(); };
+    : () => { showHome(_popScroll()); };
 
   document.getElementById('player-page').classList.add('open');
   window.scrollTo(0,0);
@@ -2593,10 +3354,251 @@ function switchSource(idx) {
 }
 
 /* ============================================================
-   INTRO → HOME
+   INTRO SOUND — full cinematic sound design (Web Audio API),
+   synced to the whole intro timeline (riser → impact → letter
+   arpeggio → whoosh → shimmer)
    ============================================================ */
-window.addEventListener('load', ()=>{
+let _introAudioCtx = null;
+function _getAudioCtx() {
+  if (!_introAudioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) _introAudioCtx = new AC();
+  }
+  return _introAudioCtx;
+}
+
+// Synthetic reverb impulse (decaying noise) — gives hits/pads a tail
+function _makeReverbImpulse(ctx, duration, decay) {
+  const rate = ctx.sampleRate;
+  const length = Math.floor(rate * duration);
+  const impulse = ctx.createBuffer(2, length, rate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = impulse.getChannelData(ch);
+    for (let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+    }
+  }
+  return impulse;
+}
+
+function _noiseBuffer(ctx, duration) {
+  const size = Math.max(1, Math.floor(ctx.sampleRate * duration));
+  const buf = ctx.createBuffer(1, size, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < size; i++) d[i] = Math.random() * 2 - 1;
+  return buf;
+}
+
+// 1) Rising tension sweep leading into the impact
+function _riser(ctx, time, duration, master, verb) {
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(70, time);
+  osc.frequency.exponentialRampToValueAtTime(420, time + duration);
+
+  const filt = ctx.createBiquadFilter();
+  filt.type = 'lowpass';
+  filt.frequency.setValueAtTime(200, time);
+  filt.frequency.exponentialRampToValueAtTime(3200, time + duration);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, time);
+  gain.gain.exponentialRampToValueAtTime(0.22, time + duration * 0.9);
+  gain.gain.linearRampToValueAtTime(0.0001, time + duration + 0.05);
+
+  osc.connect(filt); filt.connect(gain);
+  gain.connect(master);
+  gain.connect(verb);
+
+  // airy noise layer riding under the sweep
+  const noise = ctx.createBufferSource();
+  noise.buffer = _noiseBuffer(ctx, duration);
+  const nFilt = ctx.createBiquadFilter();
+  nFilt.type = 'bandpass';
+  nFilt.frequency.setValueAtTime(400, time);
+  nFilt.frequency.exponentialRampToValueAtTime(4000, time + duration);
+  nFilt.Q.value = 0.7;
+  const nGain = ctx.createGain();
+  nGain.gain.setValueAtTime(0.0001, time);
+  nGain.gain.exponentialRampToValueAtTime(0.12, time + duration * 0.85);
+  nGain.gain.linearRampToValueAtTime(0.0001, time + duration + 0.05);
+  noise.connect(nFilt); nFilt.connect(nGain); nGain.connect(master);
+
+  osc.start(time); osc.stop(time + duration + 0.05);
+  noise.start(time); noise.stop(time + duration + 0.05);
+}
+
+// 2) Big cinematic impact hit (sub thump + punch + noise crash + reverb tail)
+function _impactHit(ctx, time, master, verb) {
+  // Sub bass
+  const sub = ctx.createOscillator();
+  sub.type = 'sine';
+  sub.frequency.setValueAtTime(120, time);
+  sub.frequency.exponentialRampToValueAtTime(38, time + 0.35);
+  const subGain = ctx.createGain();
+  subGain.gain.setValueAtTime(0.0001, time);
+  subGain.gain.linearRampToValueAtTime(0.9, time + 0.012);
+  subGain.gain.exponentialRampToValueAtTime(0.0001, time + 1.1);
+  sub.connect(subGain); subGain.connect(master); subGain.connect(verb);
+
+  // Mid punch
+  const mid = ctx.createOscillator();
+  mid.type = 'triangle';
+  mid.frequency.setValueAtTime(260, time);
+  mid.frequency.exponentialRampToValueAtTime(90, time + 0.18);
+  const midGain = ctx.createGain();
+  midGain.gain.setValueAtTime(0.0001, time);
+  midGain.gain.linearRampToValueAtTime(0.5, time + 0.01);
+  midGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.4);
+  mid.connect(midGain); midGain.connect(master); midGain.connect(verb);
+
+  // Noise crash
+  const crash = ctx.createBufferSource();
+  crash.buffer = _noiseBuffer(ctx, 0.9);
+  const crashFilt = ctx.createBiquadFilter();
+  crashFilt.type = 'lowpass';
+  crashFilt.frequency.setValueAtTime(5000, time);
+  crashFilt.frequency.exponentialRampToValueAtTime(500, time + 0.8);
+  const crashGain = ctx.createGain();
+  crashGain.gain.setValueAtTime(0.0001, time);
+  crashGain.gain.linearRampToValueAtTime(0.5, time + 0.008);
+  crashGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.9);
+  crash.connect(crashFilt); crashFilt.connect(crashGain);
+  crashGain.connect(master); crashGain.connect(verb);
+
+  sub.start(time); sub.stop(time + 1.1);
+  mid.start(time); mid.stop(time + 0.4);
+  crash.start(time); crash.stop(time + 0.9);
+}
+
+// 3) Short plucked note — used for the letter-by-letter arpeggio
+function _pluck(ctx, time, freq, master, verb) {
+  const osc = ctx.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(freq, time);
+  const osc2 = ctx.createOscillator();
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(freq * 2, time);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, time);
+  gain.gain.linearRampToValueAtTime(0.22, time + 0.006);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.3);
+
+  const gain2 = ctx.createGain();
+  gain2.gain.setValueAtTime(0.0001, time);
+  gain2.gain.linearRampToValueAtTime(0.06, time + 0.006);
+  gain2.gain.exponentialRampToValueAtTime(0.0001, time + 0.2);
+
+  osc.connect(gain); gain.connect(master); gain.connect(verb);
+  osc2.connect(gain2); gain2.connect(master);
+
+  osc.start(time); osc.stop(time + 0.3);
+  osc2.start(time); osc2.stop(time + 0.2);
+}
+
+// 4) Quick whoosh — for the underline sweep
+function _whoosh(ctx, time, duration, master) {
+  const noise = ctx.createBufferSource();
+  noise.buffer = _noiseBuffer(ctx, duration);
+  const filt = ctx.createBiquadFilter();
+  filt.type = 'bandpass';
+  filt.frequency.setValueAtTime(600, time);
+  filt.frequency.exponentialRampToValueAtTime(3500, time + duration);
+  filt.Q.value = 1.2;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, time);
+  gain.gain.linearRampToValueAtTime(0.18, time + duration * 0.4);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+  noise.connect(filt); filt.connect(gain); gain.connect(master);
+  noise.start(time); noise.stop(time + duration);
+}
+
+// 5) Airy shimmer pad chord — under the tagline fade-in
+function _shimmerPad(ctx, time, duration, master, verb) {
+  const freqs = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, time);
+  gain.gain.linearRampToValueAtTime(0.1, time + duration * 0.3);
+  gain.gain.linearRampToValueAtTime(0.0001, time + duration);
+  gain.connect(master); gain.connect(verb);
+  freqs.forEach((f, i) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    osc.detune.value = (i % 2 === 0 ? 4 : -4);
+    osc.connect(gain);
+    osc.start(time); osc.stop(time + duration);
+  });
+}
+
+function playIntroSound() {
+  const ctx = _getAudioCtx();
+  if (!ctx) return;
+  const run = () => {
+    if (ctx.state === 'suspended') ctx.resume();
+    const t0 = ctx.currentTime + 0.03;
+
+    const master = ctx.createGain();
+    master.gain.value = 0.9;
+    master.connect(ctx.destination);
+
+    const verb = ctx.createConvolver();
+    verb.buffer = _makeReverbImpulse(ctx, 1.6, 2.3);
+    const verbGain = ctx.createGain();
+    verbGain.gain.value = 0.32;
+    verb.connect(verbGain);
+    verbGain.connect(master);
+
+    // 1. Riser building tension (0 → ~0.48s)
+    _riser(ctx, t0, 0.48, master, verb);
+
+    // 2. Impact — synced with the "big C" slam (~0.5s)
+    _impactHit(ctx, t0 + 0.5, master, verb);
+
+    // 3. Letter-by-letter arpeggio, synced with CINEMON reveal (1.05s → 1.55s)
+    const notes = [261.63, 329.63, 392.0, 523.25, 659.25, 784.0, 1046.5]; // C E G C E G C
+    const letterTimes = [1.05, 1.13, 1.20, 1.27, 1.34, 1.41, 1.48];
+    letterTimes.forEach((lt, i) => _pluck(ctx, t0 + lt, notes[i], master, verb));
+
+    // 4. Whoosh under the underline sweep (~1.65s)
+    _whoosh(ctx, t0 + 1.65, 0.4, master);
+
+    // 5. Shimmer pad under the tagline fade-in (~2.0s → 2.8s)
+    _shimmerPad(ctx, t0 + 2.0, 0.9, master, verb);
+  };
+  if (ctx.state === 'suspended') {
+    ctx.resume().then(run).catch(()=>{});
+  } else {
+    run();
+  }
+}
+
+// Fallback: the #tapEnter overlay covers the whole screen and normally
+// handles the tap via its own onclick -> enterCinemon(). This listener is
+// just a safety net (e.g. keyboard users) in case the overlay is missed.
+document.addEventListener('keydown', function _keyFallback(){
+  document.removeEventListener('keydown', _keyFallback);
+  enterCinemon();
+}, { once: true });
+
+/* ============================================================
+   INTRO → HOME  (gated behind a "TAP TO ENTER" overlay so the
+   intro sound is guaranteed to play — browsers require a user
+   gesture before audio is allowed)
+   ============================================================ */
+let _entered = false;
+function enterCinemon() {
+  if (_entered) return;
+  _entered = true;
+
+  playIntroSound();
+
+  const tapEnter = document.getElementById('tapEnter');
+  tapEnter.classList.add('hide');
+  document.body.classList.remove('pre-tap'); // un-pause the intro animations
   document.body.style.overflow = 'hidden';
+
   setTimeout(()=>{
     const intro = document.getElementById('intro');
     const home  = document.getElementById('home');
@@ -2606,7 +3608,199 @@ window.addEventListener('load', ()=>{
     loadHeroBanner();
     loadTrending();
     loadTopPicks();
+    loadTop10Today();
+    switchTrendingTab('daily', document.querySelector('.trending-tab'));
+    switchCountry('', document.querySelector('.country-chip'));
+    loadUpcoming();
+    loadCollections();
+    loadNoticeBarStats();
   }, 3000);
+}
+
+/* ============================================================
+   NOTICE BAR — live total Movies / TV Series / Anime counts
+   ============================================================ */
+function _formatCount(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1) + 'M+';
+  if (n >= 1000) return Math.floor(n / 1000) + 'K+';
+  return String(n);
+}
+
+async function loadNoticeBarStats() {
+  const setA = document.getElementById('notice-set-a');
+  const setB = document.getElementById('notice-set-b');
+  if (!setA || !setB) return;
+
+  let movies = 0, series = 0, anime = 0;
+  try {
+    const [movieData, tvData, animeTvData, animeMovieData] = await Promise.all([
+      tmdbFetch('/discover/movie?sort_by=popularity.desc'),
+      tmdbFetch('/discover/tv?sort_by=popularity.desc'),
+      tmdbFetch('/discover/tv?with_genres=16&with_origin_country=JP&sort_by=popularity.desc'),
+      tmdbFetch('/discover/movie?with_genres=16&with_origin_country=JP&sort_by=popularity.desc')
+    ]);
+    movies = movieData?.total_results || 0;
+    series = tvData?.total_results || 0;
+    anime  = (animeTvData?.total_results || 0) + (animeMovieData?.total_results || 0);
+  } catch (e) {
+    setA.innerHTML = `<span class="notice-item">🎬 CineMon Library</span><span class="notice-dot">•</span><span class="notice-item">New titles added every day</span><span class="notice-dot">•</span>`;
+    setB.innerHTML = setA.innerHTML;
+    return;
+  }
+
+  const html = `
+    <span class="notice-item">🎬 <b>${_formatCount(movies)}</b> Total Movies</span>
+    <span class="notice-dot">•</span>
+    <span class="notice-item">📺 <b>${_formatCount(series)}</b> Total TV Series</span>
+    <span class="notice-dot">•</span>
+    <span class="notice-item">🌸 <b>${_formatCount(anime)}</b> Total Anime</span>
+    <span class="notice-dot">•</span>
+  `;
+  setA.innerHTML = html;
+  setB.innerHTML = html;
+  setB.setAttribute('aria-hidden', 'true');
+}
+
+/* ============================================================
+   HERO ("NOW PLAYING") BANNER — rotates randomly through
+   upcoming releases with a live countdown, weighted so
+   Spider-Man shows up most of the time
+   ============================================================ */
+const GENRE_MAP = {28:'Action',12:'Adventure',16:'Animation',35:'Comedy',80:'Crime',
+  18:'Drama',14:'Fantasy',27:'Horror',10749:'Romance',878:'Sci-Fi',53:'Thriller',10752:'War'};
+
+let _heroPool = [];
+let _heroCurrentMovie = null;
+let _heroRotateTimer = null;
+let _heroCountdownTimer = null;
+
+async function loadHeroBanner() {
+  let pool = [];
+  try {
+    const today  = new Date().toISOString().slice(0, 10);
+    const future = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    const [p1, p2, spidey] = await Promise.all([
+      tmdbFetch(`/discover/movie?primary_release_date.gte=${today}&primary_release_date.lte=${future}&sort_by=popularity.desc&page=1`),
+      tmdbFetch(`/discover/movie?primary_release_date.gte=${today}&primary_release_date.lte=${future}&sort_by=popularity.desc&page=2`),
+      tmdbFetch(`/search/movie?query=Spider-Man&include_adult=false`)
+    ]);
+
+    const upcoming = [...(p1?.results || []), ...(p2?.results || [])]
+      .filter(m => m.release_date && m.poster_path && m.backdrop_path && m.overview)
+      .slice(0, 14);
+
+    pool = upcoming.map(m => ({ ...m, isSpidey: false }));
+
+    // Find the nearest *upcoming* Spider-Man movie and weight it heavily
+    const spideyUpcoming = (spidey?.results || [])
+      .filter(m => m.release_date && m.poster_path && m.backdrop_path &&
+                   new Date(m.release_date + 'T00:00:00').getTime() > Date.now())
+      .sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
+
+    if (spideyUpcoming.length) {
+      const spideyItem = { ...spideyUpcoming[0], isSpidey: true };
+      // Add multiple copies so it wins the random draw most of the time
+      for (let i = 0; i < 5; i++) pool.push(spideyItem);
+    }
+  } catch (e) {}
+
+  if (!pool.length) return; // keep the static default hero look
+
+  _heroPool = pool;
+  clearInterval(_heroRotateTimer);
+  _pickNextHeroMovie();
+  _heroRotateTimer = setInterval(_pickNextHeroMovie, 9000);
+}
+
+function _pickNextHeroMovie() {
+  if (!_heroPool.length) return;
+  let next, attempts = 0;
+  do {
+    next = _heroPool[Math.floor(Math.random() * _heroPool.length)];
+    attempts++;
+  } while (_heroCurrentMovie && next.id === _heroCurrentMovie.id && attempts < 8 && _heroPool.length > 1);
+  _heroCurrentMovie = next;
+  _renderHeroMovie(next);
+}
+
+function _renderHeroMovie(m) {
+  const heroSection = document.getElementById('hero-section');
+  const title    = m.title || m.name || '';
+  const year     = (m.release_date || '').slice(0, 4);
+  const score    = m.vote_average ? '★ ' + m.vote_average.toFixed(1) : '—';
+  const genres   = (m.genre_ids || []).slice(0, 2).map(id => GENRE_MAP[id]).filter(Boolean).join(' · ') || 'Movie';
+  const overview = m.overview ? (m.overview.length > 160 ? m.overview.slice(0, 157) + '…' : m.overview) : '';
+  const posterUrl = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null;
+  const bgUrl     = m.backdrop_path ? `https://image.tmdb.org/t/p/w1280${m.backdrop_path}` : null;
+
+  // brief fade for a smoother swap between rotations
+  heroSection.style.transition = 'opacity 0.35s ease';
+  heroSection.style.opacity = '0.35';
+
+  setTimeout(() => {
+    document.getElementById('hero-title').textContent = title.toUpperCase();
+    document.getElementById('hero-poster-title').textContent = title.split(' ').slice(-1)[0].toUpperCase();
+    document.getElementById('hero-year').textContent   = year;
+    document.getElementById('hero-score').textContent  = score;
+    document.getElementById('hero-genre').textContent  = genres;
+    document.getElementById('hero-desc').textContent   = overview;
+    document.getElementById('hero-badge-label').textContent = m.isSpidey ? '🕷️ SPIDER-MAN INCOMING' : 'UPCOMING RELEASE';
+    document.getElementById('hero-poster-tag').textContent  = 'UPCOMING';
+
+    const imgWrap = document.getElementById('hero-poster-img-wrap');
+    const isMobile = window.innerWidth <= 768;
+    const imgSrc = isMobile ? (bgUrl || posterUrl) : posterUrl;
+    if (imgSrc) {
+      imgWrap.innerHTML = `<img src="${imgSrc}" alt="${title}"
+        style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;border-radius:0;">`;
+    }
+
+    if (bgUrl) {
+      const bgEl = document.getElementById('hero-bg-img');
+      bgEl.style.backgroundImage = `url('${bgUrl}')`;
+      bgEl.style.backgroundSize  = 'cover';
+      bgEl.style.backgroundPosition = 'center top';
+      bgEl.style.opacity = '0.35';
+    }
+
+    const safeTitle = title.replace(/'/g, "\\'");
+    document.getElementById('hero-play-btn').setAttribute('onclick', `openPlayerPage(${m.id},'${safeTitle}')`);
+    document.querySelector('.btn-play')?.childNodes.forEach(n => {
+      if (n.nodeType === Node.TEXT_NODE && n.textContent.trim()) n.textContent = ' View Details';
+    });
+
+    heroSection.style.opacity = '1';
+
+    // Live countdown to release
+    clearInterval(_heroCountdownTimer);
+    _tickHeroCountdown(m);
+    _heroCountdownTimer = setInterval(() => _tickHeroCountdown(m), 1000);
+  }, 200);
+}
+
+function _tickHeroCountdown(m) {
+  const cdEl = document.getElementById('hero-countdown');
+  if (!cdEl) return;
+  const target = new Date(m.release_date + 'T00:00:00').getTime();
+  let diff = target - Date.now();
+  if (diff <= 0) {
+    cdEl.textContent = 'OUT NOW';
+    clearInterval(_heroCountdownTimer);
+    return;
+  }
+  const d = Math.floor(diff / 86400000); diff -= d * 86400000;
+  const h = Math.floor(diff / 3600000);  diff -= h * 3600000;
+  const mnt = Math.floor(diff / 60000);  diff -= mnt * 60000;
+  const s = Math.floor(diff / 1000);
+  cdEl.textContent = `Releases in ${d}D : ${String(h).padStart(2,'0')}H : ${String(mnt).padStart(2,'0')}M : ${String(s).padStart(2,'0')}S`;
+}
+
+
+// Fallback: if the user taps/clicks anywhere before deliberately hitting
+// the overlay (e.g. presses a key), still kick off the experience.
+window.addEventListener('load', ()=>{
+  document.body.style.overflow = 'hidden';
 });
 
 window.addEventListener('scroll', ()=>{
@@ -2615,6 +3809,902 @@ window.addEventListener('scroll', ()=>{
 });
 
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSearch(); });
+
+/* ============================================================
+   INJECT LIKE/DISLIKE + REVIEWS + CAST INTO PLAYER PAGE
+   ============================================================ */
+async function _injectMovieExtras(tmdbId, type, title) {
+  if (!tmdbId) return;
+
+  // Remove any previous extras
+  document.getElementById('_player_extras_wrap')?.remove();
+  document.getElementById('_stream_info_wrap')?.remove();
+  if (_nextEpTimer) { clearInterval(_nextEpTimer); _nextEpTimer = null; }
+
+  const detailEl = document.querySelector('.player-movie-detail');
+  if (!detailEl) return;
+
+  const wrap = document.createElement('div');
+  wrap.id = '_player_extras_wrap';
+
+  // ── 0. NEXT EPISODE COUNTDOWN (TV only) ──
+  let nextEpCd = null;
+  if (type === 'tv') {
+    try {
+      const td = await tmdbFetch(`/tv/${tmdbId}`);
+      const nx = td.next_episode_to_air;
+      if (nx && nx.air_date) {
+        nextEpCd = _makeCountdown(nx.air_date + 'T00:00:00');
+        const v = nextEpCd.getVals();
+        const epLabel = `S${nx.season_number} · E${nx.episode_number}`;
+        const dateStr = new Date(nx.air_date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+        wrap.innerHTML += `<div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:10px;letter-spacing:1.5px;color:var(--muted);margin-bottom:9px;">NEXT EPISODE — ${epLabel}${nx.name ? ' · '+nx.name : ''} · ${dateStr}</div>
+          <div class="upcoming-countdown" id="${nextEpCd.id}">
+            <div class="countdown-unit"><div class="countdown-num">${v.d}</div><div class="countdown-lbl">Days</div></div>
+            <div class="countdown-unit"><div class="countdown-num">${v.h}</div><div class="countdown-lbl">Hrs</div></div>
+            <div class="countdown-unit"><div class="countdown-num">${v.m}</div><div class="countdown-lbl">Min</div></div>
+            <div class="countdown-unit"><div class="countdown-num">${v.s}</div><div class="countdown-lbl">Sec</div></div>
+          </div>
+        </div>`;
+      }
+    } catch {}
+  }
+
+  // ── 1. STREAMING AVAILABILITY ──
+  try {
+    const ep = type === 'tv' ? `/tv/${tmdbId}/watch/providers` : `/movie/${tmdbId}/watch/providers`;
+    const pd = await tmdbFetch(ep);
+    const region = pd.results || {};
+    const r = region['US'] || region['IN'] || region['BD'] || Object.values(region)[0];
+    const flat = r ? (r.flatrate || r.free || r.ads || []).slice(0,5) : [];
+    if (flat.length) {
+      const provMap = {
+        'Netflix':'netflix','Amazon Prime Video':'prime','Prime Video':'prime',
+        'Disney Plus':'disney','Disney+':'disney','HBO Max':'hbo','Max':'hbo',
+        'Apple TV Plus':'apple','Apple TV+':'apple','Hulu':'hulu',
+      };
+      const badges = flat.map(p => {
+        const cls = provMap[p.provider_name] || 'default';
+        const short = p.provider_name.replace('Amazon Prime Video','Prime').replace('Disney Plus','Disney+').replace('Apple TV Plus','Apple TV+');
+        return `<span class="stream-badge stream-badge-${cls}">${short}</span>`;
+      }).join('');
+      wrap.innerHTML += `<div style="padding:10px 16px 6px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="font-size:10px;letter-spacing:1.5px;color:var(--muted);margin-bottom:7px;">STREAMING ON</div>
+        <div class="stream-badges">${badges}</div>
+      </div>`;
+    }
+  } catch {}
+
+  // ── 2. LIKE / DISLIKE ──
+  wrap.innerHTML += _buildLikeBarHTML(tmdbId);
+
+  // ── 3. CAST & CREW from TMDB ──
+  try {
+    const ep = type === 'tv' ? `/tv/${tmdbId}/credits` : `/movie/${tmdbId}/credits`;
+    const cd = await tmdbFetch(ep);
+    const cast = (cd.cast || []).slice(0, 12);
+    const crew = (cd.crew || []).filter(c => ['Director','Producer','Screenplay','Creator'].includes(c.job)).slice(0, 6);
+
+    if (cast.length || crew.length) {
+      const TMDB_FACE = 'https://image.tmdb.org/t/p/w92';
+      const castCards = cast.map(p => {
+        const img = p.profile_path
+          ? `<img src="${TMDB_FACE}${p.profile_path}" alt="${p.name}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;object-position:center top;display:block;background:#1a1a1a;">`
+          : `<div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#3d0d20,#1a0508);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',cursive;font-size:22px;color:var(--red);">${(p.name||'?')[0]}</div>`;
+        const safeN = (p.name||'').replace(/'/g,"\\'");
+        return `<div style="flex:0 0 80px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;" onclick="openPersonProfile(${p.id},'Actor')">
+          ${img}
+          <div style="font-size:11px;text-align:center;line-height:1.3;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</div>
+          <div style="font-size:10px;color:var(--muted);text-align:center;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.character||p.known_for_department||''}</div>
+        </div>`;
+      }).join('');
+
+      const crewCards = crew.map(p => {
+        const img = p.profile_path
+          ? `<img src="${TMDB_FACE}${p.profile_path}" alt="${p.name}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;display:block;background:#1a1a1a;">`
+          : `<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#001a3d,#0052a3);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',cursive;font-size:18px;color:#6fa3ef;">${(p.name||'?')[0]}</div>`;
+        return `<div style="flex:0 0 70px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;" onclick="openPersonProfile(${p.id},'${p.job}')">
+          ${img}
+          <div style="font-size:10px;text-align:center;line-height:1.3;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</div>
+          <div style="font-size:9px;color:var(--gold);text-align:center;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.job}</div>
+        </div>`;
+      }).join('');
+
+      wrap.innerHTML += `
+      <div style="padding:14px 16px 0;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:14px;">
+        ${crew.length ? `
+          <div style="font-family:'Bebas Neue',cursive;font-size:15px;letter-spacing:2px;margin-bottom:10px;display:flex;align-items:center;gap:7px;">
+            <span style="display:block;width:3px;height:14px;background:var(--gold);border-radius:2px;"></span>
+            Crew
+          </div>
+          <div style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:12px;">${crewCards}</div>
+        ` : ''}
+        <div style="font-family:'Bebas Neue',cursive;font-size:15px;letter-spacing:2px;margin-bottom:10px;margin-top:${crew.length?'12':'0'}px;display:flex;align-items:center;gap:7px;">
+          <span style="display:block;width:3px;height:14px;background:var(--red);border-radius:2px;"></span>
+          Cast
+        </div>
+        <div style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;">${castCards}</div>
+      </div>`;
+    }
+  } catch {}
+
+  // ── 4. REVIEWS ──
+  let tmdbRevs = [];
+  try {
+    const ep2 = type === 'tv' ? `/tv/${tmdbId}/reviews` : `/movie/${tmdbId}/reviews`;
+    const rd = await tmdbFetch(ep2);
+    tmdbRevs = (rd.results || []).slice(0, 5);
+  } catch {}
+  _showAllReviews = false;
+  wrap.innerHTML += _buildReviewSectionHTML(tmdbId, tmdbRevs);
+
+  detailEl.after(wrap);
+
+  // Tick the next-episode countdown now that its element is actually in the DOM
+  if (nextEpCd) {
+    const el = document.getElementById(nextEpCd.id);
+    if (el) {
+      _nextEpTimer = setInterval(() => {
+        const v = nextEpCd.getVals();
+        const units = el.querySelectorAll('.countdown-num');
+        if (units.length >= 4) { units[0].textContent=v.d; units[1].textContent=v.h; units[2].textContent=v.m; units[3].textContent=v.s; }
+        if (v.past) clearInterval(_nextEpTimer);
+      }, 1000);
+    }
+  }
+}
+
+/* ── Like / Dislike HTML builder ── */
+function _buildLikeBarHTML(tmdbId) {
+  const d = getLikeData(tmdbId);
+  const total = (d.likes + d.dislikes) || 1;
+  const pct   = Math.round((d.likes / total) * 100);
+  const likeIcon  = `<svg width="16" height="16" viewBox="0 0 24 24" fill="${d.userVote==='like'?'#2ecc71':'none'}" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>`;
+  const dislikeIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="${d.userVote==='dislike'?'#e50914':'none'}" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>`;
+  return `
+  <div class="like-bar" id="like-bar-${tmdbId}">
+    <button class="like-btn ${d.userVote==='like'?'liked':''}" onclick="castVote(${tmdbId},'like')">
+      ${likeIcon} <span id="like-count-${tmdbId}">${d.likes}</span>
+    </button>
+    <button class="like-btn ${d.userVote==='dislike'?'disliked':''}" onclick="castVote(${tmdbId},'dislike')">
+      ${dislikeIcon} <span id="dislike-count-${tmdbId}">${d.dislikes}</span>
+    </button>
+    <div class="like-ratio-wrap">
+      <div class="like-ratio-fill" id="like-ratio-${tmdbId}" style="width:${pct}%"></div>
+    </div>
+    <span style="font-size:11px;color:var(--muted);min-width:36px;text-align:right;" id="like-pct-${tmdbId}">${pct}%</span>
+  </div>`;
+}
+
+/* ── Override castVote to re-render bar in place ── */
+function castVote(tmdbId, vote) {
+  const d = getLikeData(tmdbId);
+  if (d.userVote === vote) {
+    if (vote === 'like')    d.likes    = Math.max(0, d.likes - 1);
+    else                    d.dislikes = Math.max(0, d.dislikes - 1);
+    d.userVote = null;
+  } else {
+    if (d.userVote === 'like')    d.likes    = Math.max(0, d.likes - 1);
+    if (d.userVote === 'dislike') d.dislikes = Math.max(0, d.dislikes - 1);
+    if (vote === 'like')   d.likes++;
+    else                   d.dislikes++;
+    d.userVote = vote;
+  }
+  setLikeData(tmdbId, d);
+
+  const bar = document.getElementById('like-bar-' + tmdbId);
+  if (!bar) return;
+  bar.outerHTML = _buildLikeBarHTML(tmdbId);
+}
+
+/* ── Review section HTML builder ── */
+function _buildReviewSectionHTML(tmdbId, tmdbReviews) {
+  const local = getReviews(tmdbId);
+  const tmdbMapped = (tmdbReviews||[]).map(r => ({
+    user: r.author || 'Anonymous',
+    rating: r.author_details?.rating ? Math.round(r.author_details.rating / 2) : 4,
+    body: r.content || '',
+    date: (r.created_at || '').slice(0, 10),
+    likes: 0,
+  }));
+  const all   = [...local, ...tmdbMapped];
+  const shown = _showAllReviews ? all : all.slice(0, 3);
+  const stars = n => Array.from({length:5},(_,i)=>`<span style="color:${i<n?'var(--gold)':'rgba(255,255,255,0.15)'}">★</span>`).join('');
+
+  return `
+  <div class="review-section" id="review-section-${tmdbId}">
+    <div class="review-title-row">
+      <div class="review-title">User Reviews <span style="color:var(--muted);font-size:14px;font-family:'Inter',sans-serif;letter-spacing:0">(${all.length})</span></div>
+      <button class="write-review-btn" onclick="openWriteReview(${tmdbId})">✏️ Write Review</button>
+    </div>
+    ${shown.map(r => `
+      <div class="review-card">
+        <div class="review-head">
+          <div class="review-avatar">${(r.user||'A')[0].toUpperCase()}</div>
+          <div><div class="review-user">${r.user||'Anonymous'}</div><div class="review-date">${r.date||''}</div></div>
+          <div class="review-stars">${stars(r.rating||5)}</div>
+        </div>
+        <div class="review-body">${(r.body||'').slice(0,300)}${(r.body||'').length>300?'…':''}</div>
+        <div class="review-likes">
+          <button class="review-like-btn" onclick="this.style.color='#2ecc71';this.disabled=true;this.querySelector('.rl-cnt').textContent=parseInt(this.querySelector('.rl-cnt').textContent)+1;">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+            Helpful (<span class="rl-cnt">${r.likes||0}</span>)
+          </button>
+        </div>
+      </div>`).join('')}
+    ${all.length > 3 && !_showAllReviews
+      ? `<button class="review-show-more" onclick="_showAllReviews=true;document.getElementById('review-section-${tmdbId}').outerHTML=_buildReviewSectionHTML(${tmdbId},[])">Show all ${all.length} reviews ↓</button>`
+      : ''}
+  </div>`;
+}
+
+
+/* ============================================================
+   TOP 10 TODAY
+   ============================================================ */
+async function loadTop10Today() {
+  renderSkeletons('top10-today-row', 10);
+  try {
+    const d = await tmdbFetch('/trending/movie/day');
+    const items = (d.results||[]).slice(0,10).map((m,i) => mapTmdbItem(m,i,'movie'));
+    document.getElementById('top10-today-row').innerHTML = items.map((m,i) => {
+      const card = makeCard(m, i, 'movie');
+      // inject top10 badge
+      return card.replace('<div class="card-rank">', `<div class="top10-badge">#${i+1}</div><div class="card-rank" style="display:none">`);
+    }).join('');
+  } catch { document.getElementById('top10-today-row').innerHTML = ''; }
+}
+
+/* ============================================================
+   TRENDING TABS (Daily / Weekly / Monthly)
+   ============================================================ */
+let _trendingTabActive = 'daily';
+async function switchTrendingTab(period, el) {
+  document.querySelectorAll('.trending-tab').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  _trendingTabActive = period;
+  const row = document.getElementById('trending-tabs-row');
+  renderSkeletons('trending-tabs-row', 8);
+  try {
+    let d;
+    if (period === 'daily')   d = await tmdbFetch('/trending/movie/day');
+    else if (period === 'weekly') d = await tmdbFetch('/trending/movie/week');
+    else {
+      // monthly: top-rated as proxy (TMDB doesn't have native monthly)
+      d = await tmdbFetch('/movie/top_rated');
+    }
+    const items = (d.results||[]).slice(0,12).map((m,i) => mapTmdbItem(m,i,'movie'));
+    row.innerHTML = items.map((m,i) => makeCard(m,i,'movie')).join('');
+  } catch { row.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px;">Load হয়নি।</div>'; }
+}
+
+/* ============================================================
+   COUNTRY-WISE TRENDING
+   ============================================================ */
+let _countryActive = '';
+async function switchCountry(region, el) {
+  document.querySelectorAll('.country-chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  _countryActive = region;
+  const row = document.getElementById('country-row');
+  renderSkeletons('country-row', 8);
+  try {
+    const endpoint = region
+      ? `/discover/movie?sort_by=popularity.desc&region=${region}&with_origin_country=${region}`
+      : '/trending/movie/week';
+    const d = await tmdbFetch(endpoint);
+    const items = (d.results||[]).slice(0,12).map((m,i) => mapTmdbItem(m,i,'movie'));
+    row.innerHTML = items.map((m,i) => makeCard(m,i,'movie')).join('');
+  } catch { row.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px;">Load হয়নি।</div>'; }
+}
+
+/* ============================================================
+   UPCOMING RELEASES WITH COUNTDOWN
+   ============================================================ */
+let _countdownTimers = [];
+function _clearCountdowns() { _countdownTimers.forEach(clearInterval); _countdownTimers = []; }
+
+function _makeCountdown(releaseDate) {
+  const target = new Date(releaseDate).getTime();
+  function getVals() {
+    const diff = target - Date.now();
+    if (diff <= 0) return { d:0, h:0, m:0, s:0, past:true };
+    const s = Math.floor(diff/1000), m = Math.floor(s/60), h = Math.floor(m/60), d = Math.floor(h/24);
+    return { d, h:h%24, m:m%60, s:s%60, past:false };
+  }
+  const id = 'cd_' + Math.random().toString(36).slice(2);
+  return { id, getVals };
+}
+
+async function loadUpcoming() {
+  _clearCountdowns();
+  renderSkeletons('upcoming-row', 6);
+  const row = document.getElementById('upcoming-row');
+  try {
+    const today = new Date().toISOString().slice(0,10);
+    const future = new Date(Date.now()+90*24*3600*1000).toISOString().slice(0,10);
+    const d = await tmdbFetch(`/discover/movie?primary_release_date.gte=${today}&primary_release_date.lte=${future}&sort_by=popularity.desc`);
+    const movies = (d.results||[]).filter(m => m.release_date > today).slice(0,10);
+    if (!movies.length) { row.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px;">কোনো upcoming movie পাওয়া যায়নি।</div>'; return; }
+    // Build one countdown (id + getVals) per movie up-front so the render pass
+    // and the interval pass below reference the exact same element id.
+    const countdowns = movies.map(m => ({ movie: m, cd: _makeCountdown(m.release_date) }));
+    row.innerHTML = countdowns.map(({ movie: m, cd }) => {
+      const poster = m.poster_path ? `https://image.tmdb.org/t/p/w342${m.poster_path}` : null;
+      const relDate = m.release_date;
+      const v = cd.getVals();
+      return `
+      <div class="upcoming-card" style="flex:0 0 200px;">
+        ${poster ? `<img class="upcoming-poster" src="${poster}" alt="${m.title}" loading="lazy">` : `<div class="upcoming-poster-ph">${m.title}</div>`}
+        <div class="upcoming-overlay">
+          <div class="upcoming-title">${m.title}</div>
+          <div class="upcoming-date">${new Date(relDate).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+          <div class="upcoming-countdown" id="${cd.id}">
+            <div class="countdown-unit"><div class="countdown-num">${v.d}</div><div class="countdown-lbl">Days</div></div>
+            <div class="countdown-unit"><div class="countdown-num">${v.h}</div><div class="countdown-lbl">Hrs</div></div>
+            <div class="countdown-unit"><div class="countdown-num">${v.m}</div><div class="countdown-lbl">Min</div></div>
+            <div class="countdown-unit"><div class="countdown-num">${v.s}</div><div class="countdown-lbl">Sec</div></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Start countdowns — reuse the SAME id/getVals created above (the old code
+    // regenerated a fresh random id here, which never matched the DOM, so the
+    // timer silently ticked on an element that didn't exist and the UI never updated).
+    countdowns.forEach(({ cd }) => {
+      const el = document.getElementById(cd.id);
+      if (!el) return;
+      const t = setInterval(() => {
+        const v = cd.getVals();
+        const units = el.querySelectorAll('.countdown-num');
+        if (units.length >= 4) { units[0].textContent=v.d; units[1].textContent=v.h; units[2].textContent=v.m; units[3].textContent=v.s; }
+        if (v.past) clearInterval(t);
+      }, 1000);
+      _countdownTimers.push(t);
+    });
+  } catch { row.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px;">Load হয়নি।</div>'; }
+}
+
+/* ============================================================
+   COLLECTIONS (Marvel, DC, Harry Potter, etc.)
+   ============================================================ */
+const COLLECTIONS_DEF = [
+  { name:'Marvel Cinematic Universe', id:131292, color:'linear-gradient(135deg,#7b0000,#e50914)', emoji:'🦸' },
+  { name:'DC Extended Universe',      id:263,    color:'linear-gradient(135deg,#001a4d,#0055cc)', emoji:'🦇' },
+  { name:'Harry Potter',              id:1241,   color:'linear-gradient(135deg,#2a1a00,#8b5e00)', emoji:'⚡' },
+  { name:'Fast & Furious',            id:9485,   color:'linear-gradient(135deg,#1a0000,#4d1a00)', emoji:'🏎️' },
+  { name:'The Lord of the Rings',     id:119,    color:'linear-gradient(135deg,#001a0a,#004d1a)', emoji:'💍' },
+  { name:'John Wick',                 id:404609, color:'linear-gradient(135deg,#0d0d0d,#333)',    emoji:'🔫' },
+  { name:'Mission: Impossible',       id:87359,  color:'linear-gradient(135deg,#1a000d,#660033)', emoji:'🕵️' },
+  { name:'Pirates of the Caribbean',  id:295,    color:'linear-gradient(135deg,#00101a,#003355)', emoji:'☠️' },
+];
+
+async function loadCollections() {
+  const row = document.getElementById('collections-row');
+  row.innerHTML = COLLECTIONS_DEF.map(c => `
+    <div class="collection-card" onclick="openCollectionPage(${c.id},'${c.name.replace(/'/g,"\\'")}')">
+      <div class="collection-bg-ph" style="background:${c.color};">
+        <span style="font-size:48px;">${c.emoji}</span>
+      </div>
+      <div class="collection-overlay">
+        <div class="collection-name">${c.name}</div>
+        <div class="collection-count" id="col-count-${c.id}">Loading…</div>
+      </div>
+    </div>`).join('');
+
+  // Load counts async
+  COLLECTIONS_DEF.forEach(async c => {
+    try {
+      const d = await tmdbFetch(`/collection/${c.id}`);
+      const el = document.getElementById(`col-count-${c.id}`);
+      if (el) el.textContent = `${(d.parts||[]).length} Movies`;
+    } catch {}
+  });
+}
+
+async function openCollectionPage(collectionId, name) {
+  _pushScroll();
+  document.getElementById('home').style.display = 'none';
+  const pg = document.getElementById('cat-page');
+  pg.style.display = 'block';
+  window.scrollTo(0,0);
+
+  document.getElementById('cat-page-title').innerHTML =
+    `<span style="color:var(--gold)">${name}</span>`;
+
+  const grid = document.getElementById('cat-movies-grid');
+  grid.innerHTML = Array.from({length:8}).map(()=>
+    `<div class="card"><div class="card-poster skeleton"></div><div class="card-info"><div class="card-name">&nbsp;</div></div></div>`
+  ).join('');
+
+  try {
+    const d = await tmdbFetch(`/collection/${collectionId}`);
+    const parts = (d.parts||[]).sort((a,b) => (a.release_date||'').localeCompare(b.release_date||''));
+    const items = parts.map((m,i) => mapTmdbItem(m,i,'movie'));
+    grid.innerHTML = items.map((m,i) => makeCard(m,i,'movie')).join('');
+  } catch {
+    grid.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px;grid-column:1/-1;">Load হয়নি।</div>';
+  }
+}
+
+/* ============================================================
+   STREAMING AVAILABILITY (TMDB watch providers)
+   ============================================================ */
+async function getStreamingProviders(tmdbId, type) {
+  try {
+    const endpoint = type === 'tv' ? `/tv/${tmdbId}/watch/providers` : `/movie/${tmdbId}/watch/providers`;
+    const d = await tmdbFetch(endpoint);
+    const region = (d.results||{});
+    // Try US first, then BD, IN, GB
+    const r = region['US'] || region['IN'] || region['BD'] || region['GB'] || Object.values(region)[0];
+    if (!r) return [];
+    const flat = r.flatrate || r.free || r.ads || [];
+    return flat.slice(0,4).map(p => p.provider_name);
+  } catch { return []; }
+}
+
+function renderStreamBadges(providers) {
+  const map = {
+    'Netflix': 'netflix', 'Amazon Prime Video': 'prime', 'Prime Video': 'prime',
+    'Disney Plus': 'disney', 'Disney+': 'disney', 'HBO Max': 'hbo', 'Max': 'hbo',
+    'Apple TV Plus': 'apple', 'Apple TV+': 'apple', 'Hulu': 'hulu',
+  };
+  return providers.map(p => {
+    const cls = map[p] || 'default';
+    const short = p.replace('Amazon Prime Video','Prime').replace('Disney Plus','Disney+').replace('Apple TV Plus','Apple TV+');
+    return `<span class="stream-badge stream-badge-${cls}">${short}</span>`;
+  }).join('');
+}
+
+/* ============================================================
+   MOVIE REQUEST MODAL
+   ============================================================ */
+let _requestModalEl = null;
+
+/* ============================================================
+   SETTINGS MODAL — 18+ / Adult content toggle
+   ============================================================ */
+let _settingsModalEl = null;
+
+function openSettingsModal() {
+  if (_settingsModalEl) return;
+  const bg = document.createElement('div');
+  bg.className = 'cm-modal-bg';
+  bg.onclick = e => { if (e.target === bg) closeSettingsModal(); };
+
+  const modal = document.createElement('div');
+  modal.className = 'cm-modal';
+  const showAdult = getShowAdult();
+  modal.innerHTML = `
+    <div class="cm-modal-handle"></div>
+    <div class="cm-modal-title">⚙️ Settings</div>
+    <div class="cm-modal-sub">App preferences</div>
+    <div class="cm-setting-row">
+      <div>
+        <div class="cm-setting-label">Show 18+ content</div>
+        <div class="cm-setting-desc">Off থাকলে adult-rated movies/series/anime — discover, search, trending, সব জায়গা থেকে hide থাকবে।</div>
+      </div>
+      <label class="cm-switch">
+        <input type="checkbox" id="settings-adult-toggle" ${showAdult ? 'checked' : ''} onchange="_onAdultToggle(this.checked)">
+        <span class="cm-switch-track"></span>
+        <span class="cm-switch-thumb"></span>
+      </label>
+    </div>
+    <div class="cm-btn-row">
+      <button class="cm-btn cm-btn-primary" style="width:100%;" onclick="closeSettingsModal()">Done</button>
+    </div>`;
+
+  bg.appendChild(modal);
+  document.body.appendChild(bg);
+  _settingsModalEl = bg;
+}
+
+function closeSettingsModal() {
+  if (_settingsModalEl) { _settingsModalEl.remove(); _settingsModalEl = null; }
+}
+
+async function _onAdultToggle(checked) {
+  setShowAdult(checked);
+  // Refresh whatever's currently on screen so the change takes effect immediately
+  try {
+    if (document.getElementById('home').style.display !== 'none') {
+      loadHeroBanner(); loadTrending(); loadTopPicks(); loadTop10Today();
+      loadUpcoming(); loadCollections(); loadSeriesRows(); loadAnimeRows();
+    }
+    const catPage = document.getElementById('cat-page');
+    if (catPage && catPage.style.display === 'block') {
+      // Re-trigger whatever's shown by simulating a fresh search-results view is
+      // out of scope here; a full home refresh above covers the common case.
+    }
+  } catch {}
+}
+
+function openRequestModal() {
+  if (_requestModalEl) return;
+  const bg = document.createElement('div');
+  bg.className = 'cm-modal-bg';
+  bg.onclick = e => { if (e.target === bg) closeRequestModal(); };
+
+  const modal = document.createElement('div');
+  modal.className = 'cm-modal';
+  modal.innerHTML = `
+    <div class="cm-modal-handle"></div>
+    <div class="cm-modal-title">🎬 Movie Request</div>
+    <div class="cm-modal-sub">যে movie বা series দেখতে চান তার নাম request করুন</div>
+    <div class="cm-field">
+      <label class="cm-label">Movie / Series Name *</label>
+      <input class="cm-input" id="req-title" placeholder="e.g. Oppenheimer, Breaking Bad…">
+    </div>
+    <div class="cm-field">
+      <label class="cm-label">Year (optional)</label>
+      <input class="cm-input" id="req-year" placeholder="e.g. 2023" type="number" min="1900" max="2030">
+    </div>
+    <div class="cm-field">
+      <label class="cm-label">Additional Notes</label>
+      <textarea class="cm-input cm-textarea" id="req-note" placeholder="Quality preference, language, etc…"></textarea>
+    </div>
+    <div class="cm-btn-row">
+      <button class="cm-btn cm-btn-secondary" onclick="closeRequestModal()">Cancel</button>
+      <button class="cm-btn cm-btn-primary" onclick="submitRequest()">Submit Request</button>
+    </div>`;
+
+  bg.appendChild(modal);
+  document.body.appendChild(bg);
+  _requestModalEl = bg;
+  setTimeout(() => { document.getElementById('req-title')?.focus(); }, 300);
+}
+
+function closeRequestModal() {
+  if (_requestModalEl) { _requestModalEl.remove(); _requestModalEl = null; }
+}
+
+function submitRequest() {
+  const title = document.getElementById('req-title')?.value?.trim();
+  const year  = document.getElementById('req-year')?.value?.trim();
+  const note  = document.getElementById('req-note')?.value?.trim();
+  if (!title) { document.getElementById('req-title')?.focus(); return; }
+
+  // Save to localStorage
+  const requests = JSON.parse(localStorage.getItem('cm_requests') || '[]');
+  requests.unshift({ title, year, note, date: new Date().toISOString() });
+  localStorage.setItem('cm_requests', JSON.stringify(requests.slice(0,50)));
+
+  // Show success
+  const modal = _requestModalEl?.querySelector('.cm-modal');
+  if (modal) modal.innerHTML = `
+    <div class="cm-modal-handle"></div>
+    <div class="cm-success">
+      <div class="cm-success-icon">✅</div>
+      <div class="cm-success-title">Request Submitted!</div>
+      <div class="cm-success-sub"><b style="color:#fff">${title}</b> এর request পাঠানো হয়েছে।<br>আমরা যত তাড়াতাড়ি সম্ভব add করব।</div>
+      <button class="cm-btn cm-btn-primary" style="width:100%;margin-top:10px;" onclick="closeRequestModal()">Close</button>
+    </div>`;
+}
+
+/* ============================================================
+   LIKE / DISLIKE SYSTEM (localStorage)
+   ============================================================ */
+function getLikeData(tmdbId) {
+  const key = 'cm_likes_' + tmdbId;
+  return JSON.parse(localStorage.getItem(key) || '{"likes":47,"dislikes":3,"userVote":null}');
+}
+function setLikeData(tmdbId, data) {
+  localStorage.setItem('cm_likes_' + tmdbId, JSON.stringify(data));
+}
+
+function buildLikeBar(tmdbId) {
+  const d = getLikeData(tmdbId);
+  const total = d.likes + d.dislikes || 1;
+  const pct = Math.round((d.likes / total) * 100);
+  return `
+    <div class="like-bar">
+      <button class="like-btn ${d.userVote==='like'?'liked':''}" onclick="castVote(${tmdbId},'like')">
+        <svg viewBox="0 0 24 24" fill="${d.userVote==='like'?'#2ecc71':'none'}" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+        <span id="like-count-${tmdbId}">${d.likes}</span>
+      </button>
+      <button class="like-btn ${d.userVote==='dislike'?'disliked':''}" onclick="castVote(${tmdbId},'dislike')">
+        <svg viewBox="0 0 24 24" fill="${d.userVote==='dislike'?'#e50914':'none'}" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+        <span id="dislike-count-${tmdbId}">${d.dislikes}</span>
+      </button>
+      <div class="like-ratio-wrap"><div class="like-ratio-fill" id="like-ratio-${tmdbId}" style="width:${pct}%"></div></div>
+      <span style="font-size:11px;color:var(--muted);min-width:32px;text-align:right;">${pct}%</span>
+    </div>`;
+}
+
+function castVote(tmdbId, vote) {
+  const d = getLikeData(tmdbId);
+  if (d.userVote === vote) { // undo
+    if (vote === 'like') d.likes = Math.max(0, d.likes-1);
+    else d.dislikes = Math.max(0, d.dislikes-1);
+    d.userVote = null;
+  } else {
+    if (d.userVote === 'like') d.likes = Math.max(0, d.likes-1);
+    if (d.userVote === 'dislike') d.dislikes = Math.max(0, d.dislikes-1);
+    if (vote === 'like') d.likes++;
+    else d.dislikes++;
+    d.userVote = vote;
+  }
+  setLikeData(tmdbId, d);
+  // re-render like bar in place
+  const bar = document.querySelector(`.like-bar`);
+  if (bar && document.getElementById('like-count-'+tmdbId)) {
+    const pct = Math.round((d.likes/(d.likes+d.dislikes||1))*100);
+    document.getElementById('like-count-'+tmdbId).textContent = d.likes;
+    document.getElementById('dislike-count-'+tmdbId).textContent = d.dislikes;
+    const rf = document.getElementById('like-ratio-'+tmdbId);
+    if (rf) rf.style.width = pct+'%';
+  }
+}
+
+/* ============================================================
+   REVIEWS SYSTEM (localStorage)
+   ============================================================ */
+function getReviews(tmdbId) {
+  return JSON.parse(localStorage.getItem('cm_reviews_'+tmdbId) || '[]');
+}
+function saveReviews(tmdbId, reviews) {
+  localStorage.setItem('cm_reviews_'+tmdbId, JSON.stringify(reviews));
+}
+
+let _reviewStars = 5;
+let _reviewTmdbId = null;
+let _showAllReviews = false;
+
+function buildReviewSection(tmdbId, tmdbReviews) {
+  _reviewTmdbId = tmdbId;
+  const local = getReviews(tmdbId);
+  // Merge: local first, then TMDB
+  const tmdbMapped = (tmdbReviews||[]).map(r => ({
+    user: r.author || 'Anonymous',
+    rating: r.author_details?.rating ? Math.round(r.author_details.rating/2) : 4,
+    body: r.content || '',
+    date: r.created_at ? r.created_at.slice(0,10) : '',
+    likes: 0, id: r.id,
+  }));
+  const all = [...local, ...tmdbMapped];
+  const shown = _showAllReviews ? all : all.slice(0,3);
+
+  const stars = n => Array.from({length:5},(_,i)=>`<span class="review-star${i<n?'':' dim'}">★</span>`).join('');
+
+  return `
+    <div class="review-section">
+      <div class="review-title-row">
+        <div class="review-title">User Reviews <span style="color:var(--muted);font-size:14px;font-family:'Inter',sans-serif;letter-spacing:0">(${all.length})</span></div>
+        <button class="write-review-btn" onclick="openWriteReview(${tmdbId})">✏️ Write Review</button>
+      </div>
+      ${shown.map(r => `
+        <div class="review-card">
+          <div class="review-head">
+            <div class="review-avatar">${(r.user||'A')[0].toUpperCase()}</div>
+            <div><div class="review-user">${r.user||'Anonymous'}</div><div class="review-date">${r.date||''}</div></div>
+            <div class="review-stars">${stars(r.rating||5)}</div>
+          </div>
+          <div class="review-body">${(r.body||'').slice(0,300)}${(r.body||'').length>300?'…':''}</div>
+          <div class="review-likes">
+            <button class="review-like-btn" onclick="likeReview(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+              Helpful (<span class="rl-cnt">${r.likes||0}</span>)
+            </button>
+          </div>
+        </div>`).join('')}
+      ${all.length > 3 && !_showAllReviews ? `<button class="review-show-more" onclick="_showAllReviews=true;refreshReviewSection(${tmdbId})">Show all ${all.length} reviews ↓</button>` : ''}
+    </div>`;
+}
+
+function likeReview(btn) {
+  const cnt = btn.querySelector('.rl-cnt');
+  if (!cnt) return;
+  cnt.textContent = parseInt(cnt.textContent||0)+1;
+  btn.style.color='#2ecc71';
+  btn.disabled=true;
+}
+
+function openWriteReview(tmdbId) {
+  _reviewStars = 5; _reviewTmdbId = tmdbId;
+  const bg = document.createElement('div');
+  bg.className = 'cm-modal-bg';
+  bg.id = '_review_modal_bg';
+  bg.onclick = e => { if(e.target===bg) bg.remove(); };
+  bg.innerHTML = `
+    <div class="cm-modal">
+      <div class="cm-modal-handle"></div>
+      <div class="cm-modal-title">✏️ Write a Review</div>
+      <div class="cm-modal-sub">আপনার opinion শেয়ার করুন</div>
+      <div class="cm-field">
+        <label class="cm-label">Rating</label>
+        <div class="review-star-select" id="rev-star-select">
+          ${[1,2,3,4,5].map(n=>`<span class="review-star-opt ${n<=5?'on':''}" data-n="${n}" onclick="setRevStar(${n})">★</span>`).join('')}
+        </div>
+      </div>
+      <div class="cm-field">
+        <label class="cm-label">Your Name</label>
+        <input class="cm-input" id="rev-name" placeholder="Anonymous">
+      </div>
+      <div class="cm-field">
+        <label class="cm-label">Review *</label>
+        <textarea class="cm-input cm-textarea" id="rev-body" placeholder="What did you think of this movie/series?"></textarea>
+      </div>
+      <div class="cm-btn-row">
+        <button class="cm-btn cm-btn-secondary" onclick="document.getElementById('_review_modal_bg').remove()">Cancel</button>
+        <button class="cm-btn cm-btn-primary" onclick="submitReview(${tmdbId})">Post Review</button>
+      </div>
+    </div>`;
+  document.body.appendChild(bg);
+}
+
+function setRevStar(n) {
+  _reviewStars = n;
+  document.querySelectorAll('.review-star-opt').forEach((el,i) => {
+    el.classList.toggle('on', i < n);
+  });
+}
+
+function submitReview(tmdbId) {
+  const name = document.getElementById('rev-name')?.value?.trim() || 'Anonymous';
+  const body = document.getElementById('rev-body')?.value?.trim();
+  if (!body) { document.getElementById('rev-body')?.focus(); return; }
+  const reviews = getReviews(tmdbId);
+  reviews.unshift({ user:name, rating:_reviewStars, body, date:new Date().toISOString().slice(0,10), likes:0, id:'local_'+Date.now() });
+  saveReviews(tmdbId, reviews);
+  document.getElementById('_review_modal_bg')?.remove();
+  refreshReviewSection(tmdbId);
+}
+
+function refreshReviewSection(tmdbId) {
+  const el = document.querySelector('.review-section');
+  if (!el) return;
+  el.outerHTML; // trigger re-fetch in player
+  // Re-fetch and rebuild reviews in player page
+  _rebuildReviews(tmdbId);
+}
+
+async function _rebuildReviews(tmdbId) {
+  const section = document.querySelector('.review-section');
+  const parent  = section?.parentElement;
+  if (!parent) return;
+  let tmdbRevs = [];
+  try { const d = await tmdbFetch(`/movie/${tmdbId}/reviews`); tmdbRevs = (d.results||[]).slice(0,5); } catch {}
+  const newHtml = buildReviewSection(tmdbId, tmdbRevs);
+  if (section) section.outerHTML = newHtml;
+  else parent.insertAdjacentHTML('beforeend', newHtml);
+}
+
+/* ============================================================
+   ACTOR / DIRECTOR PROFILE PAGE
+   ============================================================ */
+async function openPersonProfile(personId, role) {
+  _pushScroll();
+  const page = document.getElementById('profile-page');
+  page.classList.add('open');
+  window.scrollTo(0,0);
+
+  document.getElementById('profile-page-topbar-title').textContent = role || 'Profile';
+  document.getElementById('profile-name').textContent = '—';
+  document.getElementById('profile-bio').textContent = 'Loading…';
+  document.getElementById('profile-stats').innerHTML = '';
+  document.getElementById('profile-movies-row').innerHTML = Array.from({length:6}).map(()=>`<div class="card" style="flex:0 0 var(--card-w)"><div class="card-poster skeleton"></div></div>`).join('');
+
+  // back button
+  document.getElementById('profile-back-btn').onclick = () => {
+    page.classList.remove('open');
+    window.scrollTo(0, _popScroll());
+  };
+
+  try {
+    const [info, credits] = await Promise.all([
+      tmdbFetch(`/person/${personId}?append_to_response=images`),
+      tmdbFetch(`/person/${personId}/combined_credits`),
+    ]);
+
+    const name = info.name || '—';
+    document.getElementById('profile-page-topbar-title').textContent = name;
+    document.getElementById('profile-name').textContent = name;
+
+    // Role badge
+    const dept = info.known_for_department || role || 'Acting';
+    document.getElementById('profile-role-badge').textContent = dept.toUpperCase();
+
+    // Photo
+    if (info.profile_path) {
+      const photoEl = document.getElementById('profile-photo');
+      const phEl    = document.getElementById('profile-photo-ph');
+      photoEl.src = `https://image.tmdb.org/t/p/w185${info.profile_path}`;
+      photoEl.style.display = 'block';
+      phEl.style.display = 'none';
+
+      // backdrop from best movie
+      const bestMovie = (credits.cast||[]).sort((a,b)=>(b.popularity||0)-(a.popularity||0))[0];
+      if (bestMovie?.backdrop_path) {
+        document.getElementById('profile-backdrop').style.backgroundImage =
+          `url(https://image.tmdb.org/t/p/w780${bestMovie.backdrop_path})`;
+      }
+    } else {
+      document.getElementById('profile-photo-ph').textContent = name[0].toUpperCase();
+    }
+
+    // Meta
+    const born = info.birthday ? `Born ${info.birthday}${info.place_of_birth ? ' · '+info.place_of_birth : ''}` : '';
+    const died = info.deathday ? ` · Died ${info.deathday}` : '';
+    document.getElementById('profile-meta-row').innerHTML = born
+      ? `<div class="profile-meta-item">🎂 ${born}${died}</div>` : '';
+
+    // Bio
+    document.getElementById('profile-bio').textContent = info.biography
+      ? (info.biography.length > 500 ? info.biography.slice(0,497)+'…' : info.biography)
+      : 'No biography available.';
+
+    // Stats
+    const allCredits = [...(credits.cast||[]), ...(credits.crew||[])];
+    const movieCount = allCredits.filter(c=>c.media_type==='movie').length;
+    const tvCount    = allCredits.filter(c=>c.media_type==='tv').length;
+    const popularity = info.popularity ? Math.round(info.popularity) : '—';
+    document.getElementById('profile-stats').innerHTML = `
+      <div class="profile-stat"><div class="profile-stat-num">${movieCount}</div><div class="profile-stat-lbl">Movies</div></div>
+      <div class="profile-stat"><div class="profile-stat-num">${tvCount}</div><div class="profile-stat-lbl">TV Shows</div></div>
+      <div class="profile-stat"><div class="profile-stat-num">${popularity}</div><div class="profile-stat-lbl">Popularity</div></div>
+    `;
+
+    // Known for (top 12 by popularity)
+    const known = [...(credits.cast||[])].sort((a,b)=>(b.popularity||0)-(a.popularity||0)).slice(0,12);
+    document.getElementById('profile-movies-row').innerHTML = known.map((m,i) => {
+      const item = mapTmdbItem(m, i, m.media_type || 'movie');
+      return makeCard(item, i, m.media_type||'movie');
+    }).join('') || '<div style="color:var(--muted);font-size:13px;padding:20px;">No credits found.</div>';
+
+  } catch(e) {
+    document.getElementById('profile-bio').textContent = 'Profile load হয়নি।';
+  }
+}
+
+/* ============================================================
+   INJECT LIKE BAR + REVIEWS INTO PLAYER PAGE
+   ============================================================ */
+async function _injectPlayerExtras(tmdbId, type) {
+  if (!tmdbId || type === 'anime') return;
+  const detailEl = document.querySelector('.player-movie-detail');
+  if (!detailEl) return;
+
+  // Remove old extras if any
+  document.getElementById('_player_extras')?.remove();
+  const wrap = document.createElement('div');
+  wrap.id = '_player_extras';
+
+  // Like bar
+  wrap.innerHTML = buildLikeBar(tmdbId);
+
+  // Reviews
+  let tmdbRevs = [];
+  try {
+    const d = await tmdbFetch(`/${type==='tv'?'tv':'movie'}/${tmdbId}/reviews`);
+    tmdbRevs = (d.results||[]).slice(0,5);
+  } catch {}
+  _showAllReviews = false;
+  wrap.innerHTML += buildReviewSection(tmdbId, tmdbRevs);
+
+  detailEl.after(wrap);
+}
+
+/* ============================================================
+   STREAMING AVAILABILITY in player
+   ============================================================ */
+async function _injectStreamingInfo(tmdbId, type, movieTitle) {
+  const detailEl = document.getElementById('player-page-movie-meta');
+  if (!detailEl) return;
+  try {
+    const providers = await getStreamingProviders(tmdbId, type);
+    if (providers.length) {
+      document.getElementById('_stream_info_wrap')?.remove();
+      const div = document.createElement('div');
+      div.id = '_stream_info_wrap';
+      div.style.cssText = 'padding:6px 16px 4px;';
+      div.innerHTML = `<div style="font-size:10px;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px;">STREAMING ON</div><div class="stream-badges">${renderStreamBadges(providers)}</div>`;
+      detailEl.after(div);
+    }
+  } catch {}
+}
+
 </script>
 </body>
 </html>
