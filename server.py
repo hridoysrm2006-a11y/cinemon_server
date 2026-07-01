@@ -29,28 +29,25 @@ def check_tools():
 check_tools()
 
 # ── Embed URL builders ────────────────────────────────────────────────────────
-# ── Embed URL builders (Prioritizing vidlink.pro) ─────────────────────────────
 def build_embed_urls(tmdb_id, ctype, season=1, episode=1):
     s, e = season, episode
     if ctype == "movie":
         return [
-            f"https://vidlink.pro/movie/{tmdb_id}",             # vidlink কে সবার উপরে ১ নম্বরে দেওয়া হলো
+            f"https://vidlink.pro/movie/{tmdb_id}",
             f"https://vidsrc.to/embed/movie/{tmdb_id}",
             f"https://embed.su/embed/movie/{tmdb_id}",
-            f"https://vidsrc.cc/v2/embed/movie/{tmdb_id}",       # সমস্যাযুক্ত সোর্স নিচে নামানো হলো
             f"https://autoembed.cc/movie/tmdb/{tmdb_id}",
             f"https://www.2embed.cc/embed/{tmdb_id}",
         ]
     else:
         return [
-            f"https://vidlink.pro/tv/{tmdb_id}/{s}/{e}",          # tv show এর জন্যও vidlink ১ নম্বরে
+            f"https://vidlink.pro/tv/{tmdb_id}/{s}/{e}",
             f"https://vidsrc.to/embed/tv/{tmdb_id}/{s}/{e}",
             f"https://embed.su/embed/tv/{tmdb_id}/{s}/{e}",
-            f"https://vidsrc.cc/v2/embed/tv/{tmdb_id}/{s}/{e}",   # সমস্যাযুক্ত সোর্স নিচে নামানো হলো
             f"https://autoembed.cc/tv/tmdb/{tmdb_id}-{s}-{e}",
         ]
+
 # ── yt-dlp extraction ─────────────────────────────────────────────────────────
-# ── yt-dlp extraction (Optimized with Retry and Timeout) ───────────────────────
 def ytdlp_extract(page_url, quality="1080"):
     fmt = (
         f"bestvideo[height<={quality}][ext=mp4]+bestaudio[ext=m4a]"
@@ -65,38 +62,12 @@ def ytdlp_extract(page_url, quality="1080"):
         "--format", fmt,
         "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         "--add-header", "Referer:https://vidsrc.to/",
-        "--socket-timeout", "10",            # টাইমাউট ২০ সেকেন্ড থেকে কমিয়ে ১০ সেকেন্ড করা হলো যেন ডাউন সাইটের জন্য আটকে না থাকে
-        "--retries", "1",                    # সাইট ডাউন থাকলে বার বার ট্রাই না করে ১ বার ট্রাই করেই পরের সোর্সে চলে যাবে
+        "--socket-timeout", "15",
+        "--retries", "1",
         page_url,
     ]
     try:
-        # timeout ৪৫ থেকে কমিয়ে ১৫ সেকেন্ড করা হলো যাতে পরবর্তী সোর্সে দ্রুত সুইচ করতে পারে
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
-        lines = [l.strip() for l in r.stdout.strip().splitlines() if l.strip().startswith("http")]
-        if not lines:
-            return None
-        return {"video": lines[0], "audio": lines[1] if len(lines) >= 2 else None}
-    except Exception as ex:
-        print(f"[yt-dlp] Error extracting from {page_url}: {ex}")
-        return None
-    fmt = (
-        f"bestvideo[height<={quality}][ext=mp4]+bestaudio[ext=m4a]"
-        f"/bestvideo[height<={quality}]+bestaudio"
-        f"/best[height<={quality}]/best"
-    )
-    cmd = [
-        "yt-dlp",
-        "--get-url",
-        "--no-warnings",
-        "--no-playlist",
-        "--format", fmt,
-        "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "--add-header", "Referer:https://vidsrc.to/",
-        "--socket-timeout", "20",
-        page_url,
-    ]
-    try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=45)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=25)
         lines = [l.strip() for l in r.stdout.strip().splitlines() if l.strip().startswith("http")]
         if not lines:
             return None
@@ -137,7 +108,6 @@ def ffmpeg_pipe(wfile, video_url, audio_url=None):
     has_ffmpeg = bool(shutil.which("ffmpeg"))
 
     if not has_ffmpeg:
-        # No ffmpeg — pipe the video URL directly (works for direct MP4s)
         import urllib.request
         req = urllib.request.Request(video_url, headers={
             "User-Agent": "Mozilla/5.0",
@@ -244,6 +214,15 @@ class Handler(BaseHTTPRequestHandler):
             self._err(400, "Provide embed_url or id")
             return
 
+        # [FIX]: যদি ফ্রন্টএন্ড থেকে ভুল করে vidsrc.cc পাঠানো হয়, তবে ব্যাকএন্ড সেটাকে vidlink-এ রূপান্তর করে নেবে
+        if embed_url and "vidsrc.cc" in embed_url:
+            print("[fix] Overriding vidsrc.cc embed link with vidlink.pro")
+            if tmdb_id:
+                embed_url = f"https://vidlink.pro/movie/{tmdb_id}" if ctype == "movie" else f"https://vidlink.pro/tv/{tmdb_id}/{season}/{episode}"
+            else:
+                # যদি আইডি না থাকে, সরাসরি ইউআরএল রিপ্লেস করার চেষ্টা করবে
+                embed_url = embed_url.replace("vidsrc.cc/v2/embed", "vidlink.pro")
+
         result = None
 
         # Strategy 1 — yt-dlp on the live embed URL playing right now
@@ -295,7 +274,6 @@ class Handler(BaseHTTPRequestHandler):
 # ── Start ─────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import socket
-    # Print all local IPs
     hostname = socket.gethostname()
     try:
         ips = socket.getaddrinfo(hostname, None)
