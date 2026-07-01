@@ -50,7 +50,35 @@ def build_embed_urls(tmdb_id, ctype, season=1, episode=1):
         ]
 
 # ── yt-dlp extraction ─────────────────────────────────────────────────────────
+# ── yt-dlp extraction (Optimized with Retry and Timeout) ───────────────────────
 def ytdlp_extract(page_url, quality="1080"):
+    fmt = (
+        f"bestvideo[height<={quality}][ext=mp4]+bestaudio[ext=m4a]"
+        f"/bestvideo[height<={quality}]+bestaudio"
+        f"/best[height<={quality}]/best"
+    )
+    cmd = [
+        "yt-dlp",
+        "--get-url",
+        "--no-warnings",
+        "--no-playlist",
+        "--format", fmt,
+        "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "--add-header", "Referer:https://vidsrc.to/",
+        "--socket-timeout", "10",            # টাইমাউট ২০ সেকেন্ড থেকে কমিয়ে ১০ সেকেন্ড করা হলো যেন ডাউন সাইটের জন্য আটকে না থাকে
+        "--retries", "1",                    # সাইট ডাউন থাকলে বার বার ট্রাই না করে ১ বার ট্রাই করেই পরের সোর্সে চলে যাবে
+        page_url,
+    ]
+    try:
+        # timeout ৪৫ থেকে কমিয়ে ১৫ সেকেন্ড করা হলো যাতে পরবর্তী সোর্সে দ্রুত সুইচ করতে পারে
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        lines = [l.strip() for l in r.stdout.strip().splitlines() if l.strip().startswith("http")]
+        if not lines:
+            return None
+        return {"video": lines[0], "audio": lines[1] if len(lines) >= 2 else None}
+    except Exception as ex:
+        print(f"[yt-dlp] Error extracting from {page_url}: {ex}")
+        return None
     fmt = (
         f"bestvideo[height<={quality}][ext=mp4]+bestaudio[ext=m4a]"
         f"/bestvideo[height<={quality}]+bestaudio"
